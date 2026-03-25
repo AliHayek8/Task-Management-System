@@ -1,6 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { TaskForm } from './task-form';
+import { TaskForm } from './task-form.component';
 
 describe('TaskForm', () => {
   let component: TaskForm;
