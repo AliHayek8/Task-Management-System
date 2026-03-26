@@ -35,4 +35,6 @@ build/
 # Application properties (sensitive data)
 backend/src/main/resources/application.properties
 
+# Ignore all application properties
+**/application.properties
 
