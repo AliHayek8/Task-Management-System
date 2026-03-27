@@ -1,5 +1,12 @@
 <div class="auth-container">
 
+  <!-- شعار التطبيق -->
+  <div class="auth-logo">
+    <div class="logo-icon">✦</div>
+    <span class="logo-text">TaskFlow</span>
+  </div>
+
+  <!-- Login Form -->
   <div class="auth-card" *ngIf="isLoginMode">
     <h2>Welcome back</h2>
     <p>Sign in to your account</p>
@@ -26,6 +33,7 @@
     </p>
   </div>
 
+  <!-- Register Form -->
   <div class="auth-card" *ngIf="!isLoginMode">
     <h2>Create account</h2>
     <p>Register to get started</p>
@@ -50,7 +58,7 @@
              (keyup.enter)="onRegister()"/>
     </div>
 
-    <button class="btn-primary" (click)="onRegister()">Sign up</button>
+    <button class="btn-primary" type="button" (click)="onRegister()">Sign up</button>
 
     <p class="toggle-text">
       Already have an account? <span (click)="toggleMode()">Sign in</span>

@@ -30,7 +30,6 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
         String path = request.getRequestURI();
 
-        // يتجاهل الـ filter لـ auth endpoints ويمررها مباشرة
         if (path.startsWith("/api/auth/")) {
             filterChain.doFilter(request, response);
             return;
