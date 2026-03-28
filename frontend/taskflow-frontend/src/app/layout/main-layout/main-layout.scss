@@ -93,3 +93,7 @@
   box-sizing: border-box;
   overflow-y: auto;
 }
+.nav-item.active {
+  background: #a0aec0;
+  color: white;
+}
