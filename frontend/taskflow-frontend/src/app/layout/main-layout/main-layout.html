@@ -1,0 +1,31 @@
+<div class="layout">
+  <aside class="sidebar">
+    <div class="top-section">
+      <div class="logo">TaskFlow</div>
+      <div class="menu-label">Menu</div>
+
+      <nav class="nav-links">
+        <a
+          *ngFor="let item of items"
+          [routerLink]="item.route"
+          class="nav-item"
+        >
+          {{ item.text }}
+        </a>
+      </nav>
+    </div>
+
+    <div class="user-account">
+      <div class="user-info">
+        <div class="user-name">Suhaila Issa</div>
+        <div class="user-email">suhaila@example.com</div>
+      </div>
+     
+      <button kendoButton themeColor="primary">Sign Out</button>
+    </div>
+  </aside>
+
+  <main class="content">
+    <router-outlet></router-outlet>
+  </main>
+</div>
