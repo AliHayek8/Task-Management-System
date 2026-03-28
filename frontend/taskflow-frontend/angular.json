@@ -81,16 +81,11 @@
           },
           "defaultConfiguration": "development"
         },
-        "test": {
-          "builder": "@angular/build:unit-test",
-          "options": {
-            "styles": [
-              {
-                "input": "node_modules/@progress/kendo-theme-default/dist/all.css"
-              }
-            ]
-          }
-        }
+       "test": {
+  "builder": "@angular/build:unit-test",
+  "options": {}
+}
+        
       }
     }
   }
