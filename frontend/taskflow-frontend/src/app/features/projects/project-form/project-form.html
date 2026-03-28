@@ -1,1 +1,20 @@
-<p>project-form works!</p>
+<div class="form-popup">
+  <div class="popup-content">
+    <h3>{{ project().id ? 'Edit Project' : 'New Project' }}</h3>
+
+    <label>
+      Name:
+      <input [(ngModel)]="project().name" />
+    </label>
+
+    <label>
+      Description:
+      <textarea [(ngModel)]="project().description"></textarea>
+    </label>
+
+    <div class="popup-actions">
+      <button kendoButton (click)="onSave()" class="btn-save">Save</button>
+      <button kendoButton (click)="onCancel()" class="btn-cancel">Cancel</button>
+    </div>
+  </div>
+</div>
