@@ -25,6 +25,11 @@ export class AuthComponent {
   }
 
   onLogin() {
+    if (!this.loginData.email || !this.loginData.password) {
+      this.errorMessage = 'Please fill in all fields';
+      return;
+    }
+
     console.log('Login clicked!', this.loginData);
     this.authService.login(this.loginData).subscribe({
       next: (response: any) => {
@@ -37,13 +42,33 @@ export class AuthComponent {
         this.router.navigate(['/dashboard']);
       },
       error: (err: any) => {
-        console.log('Login error!', err);
-        this.errorMessage = 'Invalid email or password';
+        console.log('Login error details:', err.error);
+        if (err.error && err.error.message) {
+          this.errorMessage = err.error.message;
+        } else {
+          this.errorMessage = 'Invalid email or password';
+        }
       }
     });
   }
 
   onRegister() {
+    if (!this.registerData.name.trim()) {
+      this.errorMessage = 'Name is required';
+      return;
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(this.registerData.email)) {
+      this.errorMessage = 'Please enter a valid email (e.g. ali@example.com)';
+      return;
+    }
+
+    if (this.registerData.password.length < 6) {
+      this.errorMessage = 'Password must be at least 6 characters';
+      return;
+    }
+
     this.authService.register(this.registerData).subscribe({
       next: (response: any) => {
         localStorage.setItem('token', response.token);
@@ -53,8 +78,13 @@ export class AuthComponent {
         }));
         this.router.navigate(['/dashboard']);
       },
-      error: () => {
-        this.errorMessage = 'Registration failed. Email may already exist.';
+      error: (err: any) => {
+        console.log('Register error details:', err.error);
+        if (err.error && err.error.message) {
+          this.errorMessage = err.error.message;
+        } else {
+          this.errorMessage = 'Registration failed. Please try again.';
+        }
       }
     });
   }
