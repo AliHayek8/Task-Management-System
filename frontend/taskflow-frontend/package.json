@@ -39,6 +39,8 @@
     "@progress/kendo-angular-dropdowns": "^23.2.2",
     "@progress/kendo-angular-grid": "^23.2.2",
     "@progress/kendo-angular-inputs": "^23.2.2",
+    "@progress/kendo-angular-intl": "^23.2.2",
+    "@progress/kendo-angular-l10n": "^23.2.2",
     "@progress/kendo-angular-layout": "^23.2.2",
     "@progress/kendo-theme-default": "^13.1.1",
     "express": "^5.1.0",
