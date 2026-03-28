@@ -1,15 +1,9 @@
 import { Routes } from '@angular/router';
-import { MainLayoutComponent } from './layout/main-layout/main-layout.component';
-import { ProjectsList } from './features/projects/projects-list/projects-list.component';
+import { AuthComponent } from './features/auth/auth.component';
+import { Dashboard } from './features/dashboard/dashboard.component';
 
 export const routes: Routes = [
-
-  {
-    path: '',
-    component: MainLayoutComponent,
-    children: [
-      { path: 'projects', component: ProjectsList }
-    ]
-  }
-
+  { path: '', redirectTo: 'auth', pathMatch: 'full' },
+  { path: 'auth', component: AuthComponent },
+  { path: 'dashboard', component: Dashboard },
 ];
