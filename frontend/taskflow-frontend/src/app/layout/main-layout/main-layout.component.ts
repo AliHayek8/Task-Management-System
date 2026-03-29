@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { ButtonsModule } from '@progress/kendo-angular-buttons';
 import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router'; 
+import { RouterModule } from '@angular/router';
 
 @Component({
   selector: 'app-main-layout',
@@ -10,7 +10,7 @@ import { RouterModule } from '@angular/router';
   imports: [
     CommonModule,
     ButtonsModule,
-    RouterModule  
+    RouterModule
   ],
   templateUrl: './main-layout.html',
   styleUrls: ['./main-layout.scss']
@@ -28,17 +28,17 @@ export class MainLayoutComponent implements OnInit {
   constructor(private router: Router) {}
 
   ngOnInit() {
-  if (typeof window !== 'undefined') {
-    const storedUser = localStorage.getItem('user');
-    if (storedUser) {
-      this.user = JSON.parse(storedUser);
+    if (typeof window !== 'undefined') {
+      const storedUser = sessionStorage.getItem('user');
+      if (storedUser) {
+        this.user = JSON.parse(storedUser);
+      }
     }
   }
-}
 
   logout() {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
+    sessionStorage.removeItem('token');
+    sessionStorage.removeItem('user');
     this.router.navigate(['/auth']);
   }
 }
