@@ -13,13 +13,25 @@ import { Project } from '../projects-list/projects-list.component';
 export class ProjectFormComponent {
   project = input.required<Project>();
   isNewProject = input.required<boolean>();
-  closeForm = input.required<() => void>();
+  save = input.required<() => void>();
+  cancel = input.required<() => void>();
 
-  onSave() {
-    this.closeForm()();
+  descriptionError = false;
+
+ checkDescription(value: string) {
+   this.descriptionError = !!value && value.trim().length < 30;
+ }
+
+  onSave(form: any) {
+    if (form.invalid || this.descriptionError) {
+      form.control.markAllAsTouched();
+      return;
+    }
+
+    this.save()();
   }
 
   onCancel() {
-    this.closeForm()();
+    this.cancel()();
   }
 }

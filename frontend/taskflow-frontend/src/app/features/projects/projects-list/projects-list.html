@@ -17,10 +17,11 @@
   </div>
 
   <ng-container *ngIf="showPopup()">
-  <app-project-form
-  [project]="project()"
-  [isNewProject]="!project().id"
-  [closeForm]="saveProject.bind(this)">
-</app-project-form>
+    <app-project-form
+      [project]="project()"
+      [isNewProject]="!project().id"
+      [save]="saveProject.bind(this)"
+      [cancel]="cancel.bind(this)">
+    </app-project-form>
   </ng-container>
 </div>

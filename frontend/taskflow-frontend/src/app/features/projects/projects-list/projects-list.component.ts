@@ -2,11 +2,11 @@ import { Component, OnInit, Inject, PLATFORM_ID, signal } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { ProjectService } from '../../../core/services/project/project.service';
 import { ProjectFormComponent } from '../project-form/project-form.component';
-import { CommonModule } from '@angular/common';  // 👈 مهم
+import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
 export interface Project {
-  id?: number;      // اختياري
+  id?: number;
   name: string;
   description: string;
   userId: number;
@@ -19,8 +19,8 @@ export interface Project {
   templateUrl: './projects-list.html',
   styleUrls: ['./projects-list.scss'],
   standalone: true,
-  imports: [CommonModule,           
-    FormsModule,           
+  imports: [CommonModule,
+    FormsModule,
     ProjectFormComponent],
 })
 export class ProjectsListComponent implements OnInit {
@@ -59,7 +59,7 @@ export class ProjectsListComponent implements OnInit {
     this.showPopup.set(true);
   }
 
- 
+
 
   cancel() {
     this.showPopup.set(false);
@@ -69,31 +69,33 @@ export class ProjectsListComponent implements OnInit {
 saveProject() {
   const user = JSON.parse(localStorage.getItem('user') || '{}');
   const currentProject = this.project();
-  if (!currentProject.name.trim()) return;
 
   if (currentProject.id) {
     const { id, ...payload } = currentProject;
+
     this.projectService.updateProject(id, payload)
       .subscribe({
         next: (updatedProject) => {
-          console.log('Updated project response:', updatedProject);
           this.projects.set(
-            this.projects().map(p => p.id === updatedProject.id ? updatedProject : p)
+            this.projects().map(p =>
+              p.id === updatedProject.id ? updatedProject : p
+            )
           );
           this.showPopup.set(false);
         },
-        error: (err) => console.error('Update project error:', err)
+        error: (err) => console.error(err)
       });
+
   } else {
     const newProject = { ...currentProject, userId: user.id };
+
     this.projectService.createProject(newProject)
       .subscribe({
         next: (createdProject) => {
-          console.log('Created project response:', createdProject);
           this.projects.set([...this.projects(), createdProject]);
           this.showPopup.set(false);
         },
-        error: (err) => console.error('Create project error:', err)
+        error: (err) => console.error(err)
       });
   }
 }

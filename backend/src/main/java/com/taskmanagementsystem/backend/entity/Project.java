@@ -30,6 +30,7 @@ public class Project {
     @Column(nullable = false)
     private String name;
 
+    @Column(columnDefinition = "TEXT")
     private String description;
 
     @ManyToOne
