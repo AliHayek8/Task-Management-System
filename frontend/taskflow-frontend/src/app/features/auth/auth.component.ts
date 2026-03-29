@@ -20,7 +20,6 @@ export class AuthComponent {
 
   errorMessage = '';
 
-  // أخطاء الـ Register لكل field بشكل منفصل
   registerErrors = {
     name: '',
     email: '',
@@ -35,7 +34,6 @@ export class AuthComponent {
     this.registerErrors = { name: '', email: '', password: '' };
   }
 
-  // Reactive validation لكل field في Register
   validateName() {
     if (!this.registerData.name.trim()) {
       this.registerErrors.name = 'Name is required';
@@ -65,7 +63,6 @@ export class AuthComponent {
     }
   }
 
-  // يتحقق إن كل الـ fields صحيحة
   isRegisterFormValid(): boolean {
     return !this.registerErrors.name &&
            !this.registerErrors.email &&
@@ -105,7 +102,6 @@ export class AuthComponent {
   }
 
   onRegister() {
-    // يتحقق من كل الـ fields أولاً
     this.validateName();
     this.validateEmail();
     this.validatePassword();
