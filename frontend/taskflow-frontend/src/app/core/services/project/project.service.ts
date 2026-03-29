@@ -18,7 +18,8 @@ export class ProjectService {
   constructor(private http: HttpClient) {}
 
   private getAuthHeaders() {
-    const token = localStorage.getItem('token');
+    // تغيير من localStorage إلى sessionStorage
+    const token = sessionStorage.getItem('token');
     return { Authorization: `Bearer ${token}` };
   }
 
