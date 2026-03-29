@@ -86,6 +86,7 @@ export class AuthComponent {
         console.log('Login success!', response);
         sessionStorage.setItem('token', response.token);
         sessionStorage.setItem('user', JSON.stringify({
+          id: response.id,
           name: response.name,
           email: response.email
         }));
@@ -117,6 +118,7 @@ export class AuthComponent {
       next: (response: any) => {
         sessionStorage.setItem('token', response.token);
         sessionStorage.setItem('user', JSON.stringify({
+          id: response.id,
           name: response.name,
           email: response.email
         }));

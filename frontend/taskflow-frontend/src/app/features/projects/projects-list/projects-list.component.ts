@@ -42,7 +42,7 @@ export class ProjectsListComponent implements OnInit {
   ngOnInit(): void {
     if (!isPlatformBrowser(this.platformId)) return;
 
-    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    const user = JSON.parse(sessionStorage.getItem('user') || '{}');
     if (user?.id) this.loadProjects(user.id);
   }
 
@@ -67,7 +67,8 @@ export class ProjectsListComponent implements OnInit {
 
 
 saveProject() {
-  const user = JSON.parse(localStorage.getItem('user') || '{}');
+  const user = JSON.parse(sessionStorage.getItem('user') || '{}');
+  if (user?.id) this.loadProjects(user.id);
   const currentProject = this.project();
 
   if (currentProject.id) {
@@ -109,7 +110,8 @@ deleteProject(id: number) {
   console.log('Deleting project with id:', id);
   if (!confirm('Are you sure you want to delete this project?')) return;
 
-  const user = JSON.parse(localStorage.getItem('user') || '{}');
+  const user = JSON.parse(sessionStorage.getItem('user') || '{}');
+  if (user?.id) this.loadProjects(user.id);
   this.projectService.deleteProject(id)
     .subscribe({
       next: () => {
