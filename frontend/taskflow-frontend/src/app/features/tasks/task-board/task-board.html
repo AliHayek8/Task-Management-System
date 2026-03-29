@@ -1,1 +1,205 @@
-<p>task-board works!</p>
+<div class="board-container">
+
+  <!-- Header -->
+  <div class="board-header">
+    <h2>Task Board</h2>
+  </div>
+
+  <!-- Loading -->
+  <div class="loading" *ngIf="isLoading()">
+    Loading tasks...
+  </div>
+
+  <!-- Kanban Columns -->
+  <div class="kanban-board" *ngIf="!isLoading()">
+
+    <!-- To Do Column -->
+    <div class="kanban-column">
+      <div class="column-header">
+        <span class="column-dot todo-dot"></span>
+        <span class="column-title">To Do</span>
+        <span class="column-count">{{ getTasksByStatus('TODO').length }}</span>
+        <button kendoButton fillMode="flat" (click)="openAddDialog('TODO')">+</button>
+      </div>
+
+      <div class="task-list">
+        <div class="task-card" *ngFor="let task of getTasksByStatus('TODO')">
+          <div class="task-header">
+            <span class="task-title">{{ task.title }}</span>
+            <div class="task-actions">
+              <button kendoButton fillMode="flat" size="small" (click)="openEditDialog(task)">✏️</button>
+              <button kendoButton fillMode="flat" size="small" (click)="deleteTask(task)">🗑️</button>
+            </div>
+          </div>
+          <p class="task-description">{{ task.description }}</p>
+          <div class="task-footer">
+            <span class="priority-badge"
+                  [style.background-color]="getPriorityColor(task.priority)">
+              {{ task.priority }}
+            </span>
+            <span class="assignee" *ngIf="task.assigneeName">{{ task.assigneeName }}</span>
+          </div>
+          <div class="task-deadline" *ngIf="task.deadline">
+            📅 {{ task.deadline }}
+          </div>
+          <div class="task-status-actions">
+            <button kendoButton fillMode="flat" size="small"
+                    (click)="changeStatus(task, 'IN_PROGRESS')">
+              → In Progress
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- In Progress Column -->
+    <div class="kanban-column">
+      <div class="column-header">
+        <span class="column-dot inprogress-dot"></span>
+        <span class="column-title">In Progress</span>
+        <span class="column-count">{{ getTasksByStatus('IN_PROGRESS').length }}</span>
+        <button kendoButton fillMode="flat" (click)="openAddDialog('IN_PROGRESS')">+</button>
+      </div>
+
+      <div class="task-list">
+        <div class="task-card" *ngFor="let task of getTasksByStatus('IN_PROGRESS')">
+          <div class="task-header">
+            <span class="task-title">{{ task.title }}</span>
+            <div class="task-actions">
+              <button kendoButton fillMode="flat" size="small" (click)="openEditDialog(task)">✏️</button>
+              <button kendoButton fillMode="flat" size="small" (click)="deleteTask(task)">🗑️</button>
+            </div>
+          </div>
+          <p class="task-description">{{ task.description }}</p>
+          <div class="task-footer">
+            <span class="priority-badge"
+                  [style.background-color]="getPriorityColor(task.priority)">
+              {{ task.priority }}
+            </span>
+            <span class="assignee" *ngIf="task.assigneeName">{{ task.assigneeName }}</span>
+          </div>
+          <div class="task-deadline" *ngIf="task.deadline">
+            📅 {{ task.deadline }}
+          </div>
+          <div class="task-status-actions">
+            <button kendoButton fillMode="flat" size="small"
+                    (click)="changeStatus(task, 'TODO')">
+              ← To Do
+            </button>
+            <button kendoButton fillMode="flat" size="small"
+                    (click)="changeStatus(task, 'DONE')">
+              → Done
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Done Column -->
+    <div class="kanban-column">
+      <div class="column-header">
+        <span class="column-dot done-dot"></span>
+        <span class="column-title">Done</span>
+        <span class="column-count">{{ getTasksByStatus('DONE').length }}</span>
+        <button kendoButton fillMode="flat" (click)="openAddDialog('DONE')">+</button>
+      </div>
+
+      <div class="task-list">
+        <div class="task-card" *ngFor="let task of getTasksByStatus('DONE')">
+          <div class="task-header">
+            <span class="task-title">{{ task.title }}</span>
+            <div class="task-actions">
+              <button kendoButton fillMode="flat" size="small" (click)="openEditDialog(task)">✏️</button>
+              <button kendoButton fillMode="flat" size="small" (click)="deleteTask(task)">🗑️</button>
+            </div>
+          </div>
+          <p class="task-description">{{ task.description }}</p>
+          <div class="task-footer">
+            <span class="priority-badge"
+                  [style.background-color]="getPriorityColor(task.priority)">
+              {{ task.priority }}
+            </span>
+            <span class="assignee" *ngIf="task.assigneeName">{{ task.assigneeName }}</span>
+          </div>
+          <div class="task-deadline" *ngIf="task.deadline">
+            📅 {{ task.deadline }}
+          </div>
+          <div class="task-status-actions">
+            <button kendoButton fillMode="flat" size="small"
+                    (click)="changeStatus(task, 'IN_PROGRESS')">
+              ← In Progress
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Add/Edit Task Dialog -->
+  <div class="dialog-overlay" *ngIf="showDialog()">
+    <div class="dialog-card">
+      <div class="dialog-header">
+        <h3>{{ isEditMode() ? 'Edit Task' : 'New Task' }}</h3>
+        <button kendoButton fillMode="flat" (click)="closeDialog()">✕</button>
+      </div>
+
+      <div class="error-message" *ngIf="errorMessage">{{ errorMessage }}</div>
+
+      <div class="form-group">
+        <label>Title</label>
+        <input type="text"
+               [(ngModel)]="taskForm.title"
+               placeholder="Task title"/>
+      </div>
+
+      <div class="form-group">
+        <label>Description</label>
+        <textarea [(ngModel)]="taskForm.description"
+                  placeholder="Details..."></textarea>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Status</label>
+          <select [(ngModel)]="taskForm.status">
+            <option value="TODO">To Do</option>
+            <option value="IN_PROGRESS">In Progress</option>
+            <option value="DONE">Done</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Priority</label>
+          <select [(ngModel)]="taskForm.priority">
+            <option value="LOW">Low</option>
+            <option value="MEDIUM">Medium</option>
+            <option value="HIGH">High</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Assignee بالإيميل -->
+      <div class="form-group">
+        <label>Assignee Email</label>
+        <input type="email"
+               [(ngModel)]="taskForm.assigneeEmail"
+               placeholder="email@example.com (optional)"/>
+      </div>
+
+      <div class="form-group">
+        <label>Deadline</label>
+        <input type="date" [(ngModel)]="taskForm.deadline"/>
+      </div>
+
+      <div class="dialog-actions">
+        <button kendoButton themeColor="base" (click)="closeDialog()">Cancel</button>
+        <button kendoButton themeColor="primary" (click)="saveTask()">
+          {{ isEditMode() ? 'Save Changes' : 'Create Task' }}
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+</div>

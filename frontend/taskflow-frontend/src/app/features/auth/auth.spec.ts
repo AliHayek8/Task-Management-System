@@ -121,6 +121,6 @@ describe('AuthComponent', () => {
     };
     component.onRegister();
 
-    expect(component.errorMessage).toBe('Registration failed. Email may already exist.');
+    expect(component.errorMessage).toBe('Registration failed. Please try again.');
   });
 });
