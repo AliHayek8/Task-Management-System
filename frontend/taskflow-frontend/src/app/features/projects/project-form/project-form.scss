@@ -34,7 +34,7 @@
   font-size: 14px;
   border-radius: 6px;
   border: 1px solid #ccc;
-  transition: border-color 0.3s, box-shadow 0.3s;
+  transition: 0.3s;
 }
 
 .popup-content input:focus,
@@ -42,6 +42,12 @@
   border-color: #4f46e5;
   box-shadow: 0 0 5px rgba(79,70,229,0.3);
   outline: none;
+}
+
+.error {
+  color: red;
+  font-size: 12px;
+  margin-top: -10px;
 }
 
 .popup-actions {

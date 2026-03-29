@@ -80,16 +80,19 @@ export class AuthComponent {
       return;
     }
 
+
     this.authService.login(this.loginData).subscribe({
       next: (response: any) => {
         console.log('Login success!', response);
         sessionStorage.setItem('token', response.token);
         sessionStorage.setItem('user', JSON.stringify({
+          id: response.id,
           name: response.name,
           email: response.email
         }));
         this.router.navigate(['/dashboard']);
       },
+
       error: (err: any) => {
         console.log('Login error details:', err.error);
         if (err.error && err.error.message) {
@@ -111,14 +114,17 @@ export class AuthComponent {
     }
 
     this.authService.register(this.registerData).subscribe({
+
       next: (response: any) => {
         sessionStorage.setItem('token', response.token);
         sessionStorage.setItem('user', JSON.stringify({
+          id: response.id,
           name: response.name,
           email: response.email
         }));
         this.router.navigate(['/dashboard']);
       },
+
       error: (err: any) => {
         console.log('Register error details:', err.error);
         if (err.error && err.error.message) {
