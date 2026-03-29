@@ -1,29 +1,26 @@
 <div class="projects-page">
-
   <div class="header">
     <h2>Projects</h2>
-    <button kendoButton class="btn-add-project" (click)="openNewProjectForm()">+ New Project</button>
+    <button kendoButton class="btn-add-project" (click)="openAddProject()">+ New Project</button>
   </div>
 
   <div class="projects-grid">
-    <div class="project-card" *ngFor="let project of projects()">
-      <h3>{{ project.name }}</h3>
-      <p>{{ project.description }}</p>
-      <p>{{ project.tasksCompleted }} / {{ project.totalTasks }} tasks completed</p>
+    <div class="project-card" *ngFor="let p of projects()">
+      <h3>{{ p.name }}</h3>
+      <p>{{ p.description }}</p>
+      <p>{{ p.tasksCompleted }} / {{ p.totalTasks }} tasks completed</p>
 
       <div class="card-actions">
-        <button kendoButton class="btn-edit" (click)="editProject(project)">✏️ Edit</button>
-        <button kendoButton class="btn-delete" (click)="deleteProject(project)">🗑️ Delete</button>
-      </div>
+        <button kendoButton class="btn-edit" (click)="openEditProject(p)">✏️ Edit</button>
+<button class="btn-delete" (click)="p.id && deleteProject(p.id)">🗑️ Delete</button>      </div>
     </div>
   </div>
 
-  <ng-container *ngIf="editingProject() as currentProject">
-    <app-project-form
-      [project]="currentProject"
-      [isNewProject]="newProjectMode()"
-      [closeForm]="saveProject.bind(this)">
-    </app-project-form>
+  <ng-container *ngIf="showPopup()">
+  <app-project-form
+  [project]="project()"
+  [isNewProject]="!project().id"
+  [closeForm]="saveProject.bind(this)">
+</app-project-form>
   </ng-container>
-
 </div>

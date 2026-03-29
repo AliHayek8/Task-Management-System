@@ -31,16 +31,18 @@ export class AuthComponent {
     }
 
     console.log('Login clicked!', this.loginData);
-    this.authService.login(this.loginData).subscribe({
-      next: (response: any) => {
-        console.log('Login success!', response);
-        localStorage.setItem('token', response.token);
-        localStorage.setItem('user', JSON.stringify({
-          name: response.name,
-          email: response.email
-        }));
-        this.router.navigate(['/dashboard']);
-      },
+   this.authService.login(this.loginData).subscribe({
+  next: (response: any) => {
+    localStorage.setItem('token', response.token);
+
+    localStorage.setItem('user', JSON.stringify({
+      id: response.id,
+      name: response.name,
+      email: response.email
+    }));
+
+    this.router.navigate(['/dashboard']);
+  },
       error: (err: any) => {
         console.log('Login error details:', err.error);
         if (err.error && err.error.message) {
@@ -70,14 +72,17 @@ export class AuthComponent {
     }
 
     this.authService.register(this.registerData).subscribe({
-      next: (response: any) => {
-        localStorage.setItem('token', response.token);
-        localStorage.setItem('user', JSON.stringify({
-          name: response.name,
-          email: response.email
-        }));
-        this.router.navigate(['/dashboard']);
-      },
+  next: (response: any) => {
+    localStorage.setItem('token', response.token);
+
+    localStorage.setItem('user', JSON.stringify({
+      id: response.id,
+      name: response.name,
+      email: response.email
+    }));
+
+    this.router.navigate(['/dashboard']);
+  },
       error: (err: any) => {
         console.log('Register error details:', err.error);
         if (err.error && err.error.message) {
