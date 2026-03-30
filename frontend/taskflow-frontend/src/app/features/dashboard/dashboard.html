@@ -1,1 +1,54 @@
-<p>dashboard works!</p>
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+<div class="dashboard">
+
+
+  <h1>Dashboard</h1>
+  <p class="subtitle">Overview of all your projects and tasks</p>
+
+
+  <div class="stats">
+    <div class="card" *ngFor="let stat of stats">
+      <div class="card-header">
+        <span>{{ stat.title }}</span>
+        <i class="fa-solid" [ngClass]="stat.icon" [style.color]="stat.color"></i>
+      </div>
+      <h2>{{ stat.value }}</h2>
+    </div>
+  </div>
+  <h2 class="section-title">Projects</h2>
+
+
+  <div class="projects">
+    <div class="dashboard-project-card " *ngFor="let project of projects">
+
+
+      <div class="project-header">
+        <span class="dot" [style.background]="project.color"></span>
+        <h3>{{ project.name }}</h3>
+      </div>
+
+
+      <p>{{ project.description }}</p>
+
+
+      <div class="progress-bar">
+        <div
+          class="dashboard-progress"
+          [style.width.%]="project.progress">
+        </div>
+      </div>
+
+
+      <div class="project-footer">
+        <span>{{ project.tasks }} tasks</span>
+        <span>{{ project.progress }}%</span>
+      </div>
+
+
+    </div>
+  </div>
+
+
+</div>
