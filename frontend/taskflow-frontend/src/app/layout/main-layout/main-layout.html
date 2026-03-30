@@ -17,17 +17,15 @@
       </nav>
     </div>
 
-   <div class="user-account">
-  <div class="user-info">
-    <div class="user-name">{{ user.name }}</div>
-    <div class="user-email">{{ user.email }}</div>
-  </div>
-  
+    <div class="user-account" *ngIf="user$ | async as user">
+      <div class="user-info">
+        <div class="user-name">{{ user.name }}</div>
+        <div class="user-email">{{ user.email }}</div>
+      </div>
 
-     
       <button kendoButton themeColor="primary" (click)="logout()">
-  Sign Out
-</button>
+        Sign Out
+      </button>
     </div>
   </aside>
 
