@@ -1,22 +1,23 @@
-import { Component } from '@angular/core';
-import { Router, RouterModule } from '@angular/router';
+import { Component, OnInit } from '@angular/core';
+import { Router } from '@angular/router';
 import { ButtonsModule } from '@progress/kendo-angular-buttons';
 import { CommonModule } from '@angular/common';
+import { RouterModule } from '@angular/router';
 
 @Component({
   selector: 'app-main-layout',
   standalone: true,
   imports: [
     CommonModule,
-    RouterModule,
-    ButtonsModule
+    ButtonsModule,
+    RouterModule
   ],
   templateUrl: './main-layout.html',
   styleUrls: ['./main-layout.scss']
 })
-export class MainLayoutComponent {
+export class MainLayoutComponent implements OnInit {
 
-  constructor(private router: Router) {}
+  user: any = { name: '', email: '' };
 
   items = [
     { text: 'Dashboard', route: '/dashboard' },
@@ -24,10 +25,20 @@ export class MainLayoutComponent {
     { text: 'Profile', route: '/profile' }
   ];
 
-  logout() {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
+  constructor(private router: Router) {}
 
+  ngOnInit() {
+    if (typeof window !== 'undefined') {
+      const storedUser = sessionStorage.getItem('user');
+      if (storedUser) {
+        this.user = JSON.parse(storedUser);
+      }
+    }
+  }
+
+  logout() {
+    sessionStorage.removeItem('token');
+    sessionStorage.removeItem('user');
     this.router.navigate(['/auth']);
   }
 }

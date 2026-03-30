@@ -5,13 +5,22 @@ import { Dashboard } from './features/dashboard/dashboard.component';
 import { ProjectsListComponent } from './features/projects/projects-list/projects-list.component';
 import { Profile } from './features/profile/profile.component';
 import { TaskBoard } from './features/tasks/task-board/task-board.component';
+import { authGuard } from './core/guards/auth.guard';
+import { guestGuard } from './core/guards/guest.guard';
 
 export const routes: Routes = [
   { path: '', redirectTo: 'auth', pathMatch: 'full' },
-  { path: 'auth', component: AuthComponent },
+
+  {
+    path: 'auth',
+    component: AuthComponent,
+    canActivate: [guestGuard]
+  },
+
   {
     path: '',
     component: MainLayoutComponent,
+    canActivate: [authGuard],
     children: [
       { path: 'dashboard', component: Dashboard },
       { path: 'projects', component: ProjectsListComponent },
@@ -19,5 +28,6 @@ export const routes: Routes = [
       { path: 'profile', component: Profile },
     ]
   },
+
   { path: '**', redirectTo: 'auth' }
 ];
