@@ -3,9 +3,11 @@
     <div class="popup-content">
       <h3>{{ project().id ? 'Edit Project' : 'New Project' }}</h3>
 
-
-      <label>
-        Name:
+      <!-- Name field -->
+      <div class="form-group">
+        <label class="form-label">
+          <span class="required-star">*</span> Name
+        </label>
         <input
           name="name"
           [(ngModel)]="project().name"
@@ -13,30 +15,29 @@
           minlength="3"
           #nameRef="ngModel"
         />
-      </label>
-
-      <div class="error" *ngIf="nameRef.invalid && nameRef.touched">
-        <small *ngIf="nameRef.errors?.['required']">Name is required</small>
-        <small *ngIf="nameRef.errors?.['minlength']">
-          Minimum 3 characters
-        </small>
+        <div class="error" *ngIf="nameRef.invalid && nameRef.touched">
+          <small *ngIf="nameRef.errors?.['required']">Name is required</small>
+          <small *ngIf="nameRef.errors?.['minlength']">
+            Minimum 3 characters
+          </small>
+        </div>
       </div>
 
-
-      <label>
-        Description:
+      <!-- Description field -->
+      <div class="form-group">
+        <label class="form-label">Description</label>
         <textarea
           name="description"
           [(ngModel)]="project().description"
           #descRef="ngModel"
           (ngModelChange)="checkDescription($event)"
         ></textarea>
-      </label>
-
-      <div class="error" *ngIf="descRef.touched && descriptionError">
-        <small>Description must be at least 30 characters</small>
+        <div class="error" *ngIf="descRef.touched && descriptionError">
+          <small>Description must be at least 30 characters</small>
+        </div>
       </div>
 
+      <!-- Actions -->
       <div class="popup-actions">
         <button
           kendoButton
