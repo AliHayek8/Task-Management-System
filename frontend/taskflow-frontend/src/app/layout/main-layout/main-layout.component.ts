@@ -1,39 +1,35 @@
-import { Component, OnInit } from '@angular/core';
+import { Component } from '@angular/core';
 import { Router } from '@angular/router';
 import { ButtonsModule } from '@progress/kendo-angular-buttons';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
+import { UserService, User } from '../../core/services/user/user.service';
+import { Observable } from 'rxjs';
 
 @Component({
   selector: 'app-main-layout',
   standalone: true,
-  imports: [
-    CommonModule,
-    ButtonsModule,
-    RouterModule
-  ],
+  imports: [CommonModule, ButtonsModule, RouterModule],
   templateUrl: './main-layout.html',
-  styleUrls: ['./main-layout.scss']
+  styleUrls: ['./main-layout.scss'],
 })
-export class MainLayoutComponent implements OnInit {
+export class MainLayoutComponent {
 
-  user: any = { name: '', email: '' };
+  user$: Observable<User | null>;
 
   items = [
     { text: 'Dashboard', route: '/dashboard' },
     { text: 'Projects', route: '/projects' },
-    { text: 'Profile', route: '/profile' }
+    { text: 'Profile', route: '/profile' },
   ];
 
-  constructor(private router: Router) {}
+  constructor(
+    private router: Router,
+    private userService: UserService
+  ) {
+    this.userService.loadFromSession();
 
-  ngOnInit() {
-    if (typeof window !== 'undefined') {
-      const storedUser = sessionStorage.getItem('user');
-      if (storedUser) {
-        this.user = JSON.parse(storedUser);
-      }
-    }
+    this.user$ = this.userService.currentUser$;
   }
 
   logout() {
