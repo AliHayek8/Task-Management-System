@@ -1,4 +1,3 @@
-
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
 
 <div class="projects-page">
@@ -17,6 +16,9 @@
     <div class="project-card" *ngFor="let p of projects()">
 
       <div class="card-actions">
+        <button class="btn-icon tasks" [routerLink]="['/projects', p.id, 'tasks']">
+          <i class="fa-solid fa-list-check"></i>
+        </button>
         <button class="btn-icon edit" (click)="openEditProject(p)">
           <i class="fa-solid fa-pen"></i>
         </button>
@@ -31,9 +33,9 @@
       </div>
 
       <div class="card-footer">
-  <span class="tasks-badge">
-    {{ p.tasksCompleted }} / {{ p.totalTasks }} tasks
-  </span>
+        <span class="tasks-badge">
+          {{ p.tasksCompleted }} / {{ p.totalTasks }} tasks
+        </span>
       </div>
 
     </div>

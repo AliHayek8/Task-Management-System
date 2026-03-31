@@ -30,7 +30,7 @@ export class TaskService {
   private getHeaders(): HttpHeaders {
     let token = '';
     if (isPlatformBrowser(this.platformId)) {
-      token = localStorage.getItem('token') || '';
+      token = sessionStorage.getItem('token') || '';
     }
     return new HttpHeaders({
       'Authorization': `Bearer ${token}`

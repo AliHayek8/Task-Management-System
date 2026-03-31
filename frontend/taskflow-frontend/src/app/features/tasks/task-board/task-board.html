@@ -5,6 +5,11 @@
     <h2>Task Board</h2>
   </div>
 
+  <!-- رسالة الخطأ العامة -->
+  <div class="global-error" *ngIf="globalError">
+    {{ globalError }}
+  </div>
+
   <!-- Loading -->
   <div class="loading" *ngIf="isLoading()">
     Loading tasks...
@@ -136,7 +141,7 @@
 
   </div>
 
-  <!-- Add/Edit Task Dialog -->
+  <!-- Add/Edit Task Dialog - واحد فقط! -->
   <div class="dialog-overlay" *ngIf="showDialog()">
     <div class="dialog-card">
       <div class="dialog-header">
@@ -146,19 +151,30 @@
 
       <div class="error-message" *ngIf="errorMessage">{{ errorMessage }}</div>
 
+      <!-- Title مع Reactive Validation -->
       <div class="form-group">
-        <label>Title</label>
+        <label>Title *</label>
         <input type="text"
                [(ngModel)]="taskForm.title"
-               placeholder="Task title"/>
+               placeholder="Task title (min 3 characters)"
+               (input)="validateTitle()"
+               (blur)="validateTitle()"
+               [class.input-error]="fieldErrors.title"/>
+        <span class="field-error" *ngIf="fieldErrors.title">{{ fieldErrors.title }}</span>
       </div>
 
+      <!-- Description مع Reactive Validation -->
       <div class="form-group">
-        <label>Description</label>
+        <label>Description <span class="optional">(optional - min 30 characters)</span></label>
         <textarea [(ngModel)]="taskForm.description"
-                  placeholder="Details..."></textarea>
+                  placeholder="Details... (optional, but min 30 characters if provided)"
+                  (input)="validateDescription()"
+                  (blur)="validateDescription()"
+                  [class.input-error]="fieldErrors.description"></textarea>
+        <span class="field-error" *ngIf="fieldErrors.description">{{ fieldErrors.description }}</span>
       </div>
 
+      <!-- Status & Priority -->
       <div class="form-row">
         <div class="form-group">
           <label>Status</label>
@@ -179,17 +195,30 @@
         </div>
       </div>
 
-      <!-- Assignee بالإيميل -->
+      <!-- Assignee Email مع Reactive Validation -->
       <div class="form-group">
-        <label>Assignee Email</label>
+        <label>
+          Assignee Email
+          <span class="optional" *ngIf="taskForm.status === 'TODO'">(optional for To Do)</span>
+          <span class="required" *ngIf="taskForm.status !== 'TODO'">* Required</span>
+        </label>
         <input type="email"
                [(ngModel)]="taskForm.assigneeEmail"
-               placeholder="email@example.com (optional)"/>
+               placeholder="email@example.com"
+               (input)="validateAssigneeEmail()"
+               (blur)="validateAssigneeEmail()"
+               [class.input-error]="fieldErrors.assigneeEmail"/>
+        <span class="field-error" *ngIf="fieldErrors.assigneeEmail">{{ fieldErrors.assigneeEmail }}</span>
       </div>
 
+      <!-- Deadline مع Reactive Validation -->
       <div class="form-group">
-        <label>Deadline</label>
-        <input type="date" [(ngModel)]="taskForm.deadline"/>
+        <label>Deadline <span class="optional">(optional)</span></label>
+        <input type="date"
+               [(ngModel)]="taskForm.deadline"
+               (change)="validateDeadline()"
+               [class.input-error]="fieldErrors.deadline"/>
+        <span class="field-error" *ngIf="fieldErrors.deadline">{{ fieldErrors.deadline }}</span>
       </div>
 
       <div class="dialog-actions">

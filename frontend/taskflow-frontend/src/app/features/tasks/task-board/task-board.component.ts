@@ -1,4 +1,4 @@
-import { Component, OnInit, signal, Inject, PLATFORM_ID } from '@angular/core';
+import { Component, OnInit, signal, Inject, PLATFORM_ID, ChangeDetectorRef } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
@@ -21,11 +21,20 @@ export class TaskBoard implements OnInit {
   selectedTask = signal<Task | null>(null);
   taskForm: Task = this.getEmptyTask();
   errorMessage = '';
+  globalError = '';
   isLoading = signal(false);
+
+  fieldErrors = {
+    title: '',
+    description: '',
+    assigneeEmail: '',
+    deadline: ''
+  };
 
   constructor(
     private route: ActivatedRoute,
     private taskService: TaskService,
+    private cdr: ChangeDetectorRef,
     @Inject(PLATFORM_ID) private platformId: Object
   ) {}
 
@@ -43,8 +52,7 @@ export class TaskBoard implements OnInit {
         this.tasks.set(tasks);
         this.isLoading.set(false);
       },
-      error: (err) => {
-        console.error('Error loading tasks:', err);
+      error: () => {
         this.isLoading.set(false);
       }
     });
@@ -52,6 +60,7 @@ export class TaskBoard implements OnInit {
 
   getEmptyTask(): Task {
     return {
+      id: undefined,
       title: '',
       description: '',
       status: 'TODO',
@@ -70,8 +79,10 @@ export class TaskBoard implements OnInit {
     this.taskForm = this.getEmptyTask();
     this.taskForm.status = status as any;
     this.isEditMode.set(false);
+    this.selectedTask.set(null);
     this.showDialog.set(true);
     this.errorMessage = '';
+    this.resetFieldErrors();
   }
 
   openEditDialog(task: Task) {
@@ -80,39 +91,110 @@ export class TaskBoard implements OnInit {
     this.selectedTask.set(task);
     this.showDialog.set(true);
     this.errorMessage = '';
+    this.resetFieldErrors();
   }
 
   closeDialog() {
     this.showDialog.set(false);
     this.errorMessage = '';
+    this.resetFieldErrors();
   }
 
-  saveTask() {
+  resetFieldErrors() {
+    this.fieldErrors = {
+      title: '',
+      description: '',
+      assigneeEmail: '',
+      deadline: ''
+    };
+  }
+
+  validateTitle() {
     if (!this.taskForm.title.trim()) {
-      this.errorMessage = 'Title is required';
+      this.fieldErrors.title = 'Title is required';
+    } else if (this.taskForm.title.trim().length < 3) {
+      this.fieldErrors.title = 'Title must be at least 3 characters';
+    } else {
+      this.fieldErrors.title = '';
+    }
+  }
+
+  validateDescription() {
+    if (this.taskForm.description && this.taskForm.description.trim().length > 0) {
+      if (this.taskForm.description.trim().length < 30) {
+        this.fieldErrors.description = 'Description must be at least 30 characters';
+      } else {
+        this.fieldErrors.description = '';
+      }
+    } else {
+      this.fieldErrors.description = '';
+    }
+  }
+
+  validateAssigneeEmail() {
+    if (this.fieldErrors.assigneeEmail === 'This email is not registered in the system') {
       return;
     }
 
-    if (this.taskForm.assigneeEmail) {
+    if (this.taskForm.assigneeEmail && this.taskForm.assigneeEmail.trim().length > 0) {
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       if (!emailRegex.test(this.taskForm.assigneeEmail)) {
-        this.errorMessage = 'Please enter a valid email for assignee';
-        return;
+        this.fieldErrors.assigneeEmail = 'Please enter a valid email';
+      } else {
+        this.fieldErrors.assigneeEmail = '';
       }
+    } else {
+      this.fieldErrors.assigneeEmail = '';
+    }
+  }
+
+  validateDeadline() {
+    if (this.taskForm.deadline) {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const deadline = new Date(this.taskForm.deadline);
+      if (deadline < today) {
+        this.fieldErrors.deadline = 'Deadline cannot be in the past';
+      } else {
+        this.fieldErrors.deadline = '';
+      }
+    } else {
+      this.fieldErrors.deadline = '';
+    }
+  }
+
+  isFormValid(): boolean {
+    this.validateTitle();
+    this.validateDescription();
+    this.validateAssigneeEmail();
+    this.validateDeadline();
+
+    if (this.taskForm.status !== 'TODO' && !this.taskForm.assigneeEmail) {
+      this.errorMessage = 'Assignee email is required for In Progress and Done tasks';
+      return false;
+    }
+
+    return !this.fieldErrors.title &&
+           !this.fieldErrors.description &&
+           !this.fieldErrors.assigneeEmail &&
+           !this.fieldErrors.deadline;
+  }
+
+  saveTask() {
+    if (!this.isFormValid()) {
+      return;
     }
 
     if (this.isEditMode()) {
       this.taskService.updateTask(this.taskForm.id!, this.taskForm).subscribe({
         next: (updatedTask) => {
-          this.tasks.set(this.tasks().map(t => t.id === updatedTask.id ? updatedTask : t));
+          this.tasks.set(
+            this.tasks().map(t => t.id === updatedTask.id ? updatedTask : t)
+          );
           this.closeDialog();
         },
         error: (err) => {
-          if (err.error?.message) {
-            this.errorMessage = err.error.message;
-          } else {
-            this.errorMessage = 'Failed to update task. Please try again.';
-          }
+          this.handleTaskError(err);
         }
       });
     } else {
@@ -123,13 +205,36 @@ export class TaskBoard implements OnInit {
           this.closeDialog();
         },
         error: (err) => {
-          if (err.error?.message) {
-            this.errorMessage = err.error.message;
-          } else {
-            this.errorMessage = 'Failed to create task. Please try again.';
-          }
+          this.handleTaskError(err);
         }
       });
+    }
+  }
+
+  handleTaskError(err: any) {
+    if (err.status === 400) {
+      const errorObj = err.error || {};
+      const message = errorObj.message || '';
+
+      if (message.includes('Assignee not found')) {
+        this.fieldErrors.assigneeEmail = 'This email is not registered in the system';
+        this.cdr.detectChanges();
+      } else if (errorObj.description) {
+        this.fieldErrors.description = errorObj.description;
+        this.cdr.detectChanges();
+      } else if (errorObj.title) {
+        this.fieldErrors.title = errorObj.title;
+        this.cdr.detectChanges();
+      } else if (message) {
+        this.errorMessage = message;
+        this.cdr.detectChanges();
+      } else {
+        this.errorMessage = 'Invalid data. Please check your inputs.';
+        this.cdr.detectChanges();
+      }
+    } else {
+      this.errorMessage = 'Something went wrong. Please try again.';
+      this.cdr.detectChanges();
     }
   }
 
@@ -138,20 +243,24 @@ export class TaskBoard implements OnInit {
       next: () => {
         this.tasks.set(this.tasks().filter(t => t.id !== task.id));
       },
-      error: (err) => {
-        console.error('Error deleting task:', err);
-      }
+      error: () => {}
     });
   }
 
   changeStatus(task: Task, newStatus: string) {
+    if (task.status === 'TODO' && newStatus === 'IN_PROGRESS' && !task.assigneeEmail) {
+      this.globalError = '⚠️ Please assign this task to someone before moving it to In Progress';
+      setTimeout(() => this.globalError = '', 4000);
+      return;
+    }
+
     this.taskService.updateTaskStatus(task.id!, newStatus).subscribe({
       next: (updatedTask) => {
-        this.tasks.set(this.tasks().map(t => t.id === updatedTask.id ? updatedTask : t));
+        this.tasks.set(
+          this.tasks().map(t => t.id === updatedTask.id ? updatedTask : t)
+        );
       },
-      error: (err) => {
-        console.error('Error updating status:', err);
-      }
+      error: () => {}
     });
   }
 

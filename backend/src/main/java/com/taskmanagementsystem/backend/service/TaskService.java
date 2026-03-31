@@ -22,6 +22,7 @@ public class TaskService {
     private final ProjectRepository projectRepository;
     private final UserRepository userRepository;
 
+    // يجلب كل Tasks الخاصة بـ Project معين
     public List<TaskResponse> getTasksByProject(Long projectId) {
         Project project = projectRepository.findById(projectId)
                 .orElseThrow(() -> new RuntimeException("Project not found"));
@@ -32,7 +33,16 @@ public class TaskService {
                 .collect(Collectors.toList());
     }
 
+    // ينشئ Task جديد
     public TaskResponse createTask(TaskRequest request) {
+
+        // التحقق من الـ description إذا موجود
+        if (request.getDescription() != null &&
+                !request.getDescription().trim().isEmpty() &&
+                request.getDescription().trim().length() < 30) {
+            throw new RuntimeException("Description must be at least 30 characters");
+        }
+
         Project project = projectRepository.findById(request.getProjectId())
                 .orElseThrow(() -> new RuntimeException("Project not found"));
 
@@ -45,6 +55,7 @@ public class TaskService {
                 .project(project)
                 .build();
 
+        // إذا في assigneeEmail يبحث عن المستخدم ويعينه
         if (request.getAssigneeEmail() != null && !request.getAssigneeEmail().isEmpty()) {
             User assignee = userRepository.findByEmail(request.getAssigneeEmail())
                     .orElseThrow(() -> new RuntimeException("Assignee not found with email: " + request.getAssigneeEmail()));
@@ -55,7 +66,16 @@ public class TaskService {
         return mapToResponse(saved);
     }
 
+    // يعدّل Task موجود
     public TaskResponse updateTask(Long id, TaskRequest request) {
+
+        // التحقق من الـ description إذا موجود
+        if (request.getDescription() != null &&
+                !request.getDescription().trim().isEmpty() &&
+                request.getDescription().trim().length() < 30) {
+            throw new RuntimeException("Description must be at least 30 characters");
+        }
+
         Task task = taskRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Task not found"));
 
@@ -65,6 +85,7 @@ public class TaskService {
         task.setPriority(request.getPriority());
         task.setDeadline(request.getDeadline());
 
+        // تحديث الـ assignee إذا تغير
         if (request.getAssigneeEmail() != null && !request.getAssigneeEmail().isEmpty()) {
             User assignee = userRepository.findByEmail(request.getAssigneeEmail())
                     .orElseThrow(() -> new RuntimeException("Assignee not found with email: " + request.getAssigneeEmail()));
@@ -77,6 +98,7 @@ public class TaskService {
         return mapToResponse(saved);
     }
 
+    // يحذف Task
     public void deleteTask(Long id) {
         if (!taskRepository.existsById(id)) {
             throw new RuntimeException("Task not found");
@@ -84,6 +106,7 @@ public class TaskService {
         taskRepository.deleteById(id);
     }
 
+    // يحدّث status الـ Task فقط
     public TaskResponse updateTaskStatus(Long id, String status) {
         Task task = taskRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Task not found"));
@@ -93,6 +116,7 @@ public class TaskService {
         return mapToResponse(saved);
     }
 
+    // يجلب Tasks المعينة لمستخدم معين
     public List<TaskResponse> getTasksByAssignee(String email) {
         User assignee = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
@@ -103,6 +127,7 @@ public class TaskService {
                 .collect(Collectors.toList());
     }
 
+    // يحول Task entity إلى TaskResponse
     private TaskResponse mapToResponse(Task task) {
         TaskResponse response = new TaskResponse();
         response.setId(task.getId());
@@ -113,6 +138,7 @@ public class TaskService {
         response.setDeadline(task.getDeadline());
         response.setProjectId(task.getProject().getId());
 
+        // يضيف معلومات الـ assignee إذا موجود
         if (task.getAssignee() != null) {
             response.setAssigneeName(task.getAssignee().getName());
             response.setAssigneeEmail(task.getAssignee().getEmail());
