@@ -33,9 +33,9 @@
       </div>
 
       <div class="card-footer">
-        <span class="tasks-badge">
-          {{ p.tasksCompleted }} / {{ p.totalTasks }} tasks
-        </span>
+  <span class="tasks-badge">
+    {{ p.tasksCompleted || 0 }} / {{ p.totalTasks || 0 }} tasks
+  </span>
       </div>
 
     </div>
