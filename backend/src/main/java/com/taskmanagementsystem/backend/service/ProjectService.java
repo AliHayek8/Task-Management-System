@@ -23,7 +23,7 @@ public class ProjectService {
 
     public Project createProject(String name, String description, Long userId) {
         User user = userRepository.findById(userId)
-            .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new RuntimeException("User not found"));
 
         Project project = new Project();
         project.setName(name);
@@ -34,20 +34,21 @@ public class ProjectService {
     }
 
     public List<Project> getProjectsByUser(Long userId) {
-        return projectRepository.findByUserId(userId);
+        return projectRepository.findAllProjectsForUser(userId);
     }
-public Project updateProject(Long id, ProjectDTO projectDTO) {
-    Project project = projectRepository.findById(id)
-            .orElseThrow(() -> new RuntimeException("Project not found"));
 
-    project.setName(projectDTO.getName());
-    project.setDescription(projectDTO.getDescription());
-    return projectRepository.save(project);
-}
+    public Project updateProject(Long id, ProjectDTO projectDTO) {
+        Project project = projectRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Project not found"));
 
-public void deleteProject(Long id) {
-    Project project = projectRepository.findById(id)
-        .orElseThrow(() -> new RuntimeException("Project not found"));
-    projectRepository.delete(project);
-}
+        project.setName(projectDTO.getName());
+        project.setDescription(projectDTO.getDescription());
+        return projectRepository.save(project);
+    }
+
+    public void deleteProject(Long id) {
+        Project project = projectRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Project not found"));
+        projectRepository.delete(project);
+    }
 }
