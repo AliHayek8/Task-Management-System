@@ -1,41 +1,97 @@
-import { Component } from '@angular/core';
-import { CommonModule } from '@angular/common';
-
+import { Component, OnInit, Inject, PLATFORM_ID, signal } from '@angular/core';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
+import { RouterModule } from '@angular/router';
+import { ProjectService } from '../../core/services/project/project.service';
+import { TaskService, Task } from '../../core/services/task/task.service';
+import { forkJoin } from 'rxjs';
 
 @Component({
- selector: 'app-dashboard',
- standalone: true,
- imports: [CommonModule],
- templateUrl: './dashboard.html',
- styleUrl: './dashboard.scss',
+  selector: 'app-dashboard',
+  standalone: true,
+  imports: [CommonModule, RouterModule],
+  templateUrl: './dashboard.html',
+  styleUrls: ['./dashboard.scss'],
 })
-export class Dashboard {
+export class Dashboard implements OnInit {
 
+  projects = signal<any[]>([]);
+  stats = signal([
+    { title: 'Projects', value: 0, icon: 'fa-folder-open', color: '#4f46e5' },
+    { title: 'Done', value: 0, icon: 'fa-circle-check', color: '#10b981' },
+    { title: 'In Progress', value: 0, icon: 'fa-spinner', color: '#f59e0b' },
+    { title: 'To Do', value: 0, icon: 'fa-list-check', color: '#ef4444' }
+  ]);
 
-stats = [
-  { title: 'Projects', value: 12, icon: 'fa-folder-open', color: '#4f46e5' },
-  { title: 'Done', value: 45, icon: 'fa-circle-check', color: '#10b981' },
-  { title: 'In Progress', value: 8, icon: 'fa-spinner', color: '#f59e0b' },
-  { title: 'To Do', value: 3, icon: 'fa-list-check', color: '#ef4444' }
-];
+  private user: any = null;
 
+  constructor(
+    private projectService: ProjectService,
+    private taskService: TaskService,
+    @Inject(PLATFORM_ID) private platformId: Object
+  ) {}
 
- projects = [
-   {
-     name: 'Mobile App MVP',
-     description: 'Build first version of the mobile...',
-     progress: 0,
-     tasks: 2,
-     color: '#22c55e'
-   },
-   {
-     name: 'API Integration',
-     description: 'Connect third-party services and...',
-     progress: 67,
-     tasks: 3,
-     color: '#8b5cf6'
-   }
- ];
+  ngOnInit(): void {
+    if (!isPlatformBrowser(this.platformId)) return;
 
+    this.user = JSON.parse(sessionStorage.getItem('user') || '{}');
+    if (this.user?.id) this.loadProjects(this.user.id);
+  }
+
+  loadProjects(userId: number) {
+    this.projectService.getProjectsByOwner(userId)
+      .subscribe({
+        next: (projects) => {
+          if (projects.length === 0) {
+            this.projects.set([]);
+            this.updateStatsFromTasks([], []);
+            return;
+          }
+          this.loadAllTasks(projects);
+        },
+        error: (err) => console.error(err)
+      });
+  }
+
+  loadAllTasks(projects: any[]) {
+    const requests = projects.map(p => this.taskService.getTasksByProject(p.id));
+
+    forkJoin(requests).subscribe({
+      next: (results) => {
+        const allTasks: Task[] = results.flat();
+
+        const myTasks = allTasks.filter(t => t.assigneeEmail === this.user.email);
+
+        const updatedProjects = projects.map(project => {
+          const projectTasks = allTasks.filter(t => t.projectId === project.id);
+          return {
+            ...project,
+            tasks: projectTasks,
+            totalTasks: projectTasks.length,
+            tasksCompleted: projectTasks.filter(t => t.status === 'DONE').length
+          };
+        });
+
+        this.projects.set(updatedProjects);
+
+        this.updateStatsFromTasks(projects, myTasks);
+      },
+      error: (err) => console.error(err)
+    });
+  }
+
+  updateStatsFromTasks(projects: any[], tasks: Task[]) {
+    this.stats.set([
+      { title: 'Projects', value: projects.length, icon: 'fa-folder-open', color: '#4f46e5' },
+      { title: 'Done', value: tasks.filter(t => t.status==='DONE').length, icon: 'fa-circle-check', color: '#10b981' },
+      { title: 'In Progress', value: tasks.filter(t => t.status==='IN_PROGRESS').length, icon: 'fa-spinner', color: '#f59e0b' },
+      { title: 'To Do', value: tasks.filter(t => t.status==='TODO').length, icon: 'fa-list-check', color: '#ef4444' }
+    ]);
+  }
+
+  getProjectProgress(project: any): number {
+    if (!project.tasks || project.tasks.length === 0) return 0;
+    const done = project.tasks.filter((t: any) => t.status === 'DONE').length;
+    return (done / project.tasks.length) * 100;
+  }
 
 }

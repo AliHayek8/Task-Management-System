@@ -1,15 +1,12 @@
-
-
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
-<div class="dashboard">
 
+<div class="dashboard">
 
   <h1>Dashboard</h1>
   <p class="subtitle">Overview of all your projects and tasks</p>
 
-
   <div class="stats">
-    <div class="card" *ngFor="let stat of stats">
+    <div class="card" *ngFor="let stat of stats()">
       <div class="card-header">
         <span>{{ stat.title }}</span>
         <i class="fa-solid" [ngClass]="stat.icon" [style.color]="stat.color"></i>
@@ -17,38 +14,38 @@
       <h2>{{ stat.value }}</h2>
     </div>
   </div>
+
   <h2 class="section-title">Projects</h2>
 
-
   <div class="projects">
-    <div class="dashboard-project-card " *ngFor="let project of projects">
-
+    <a
+      *ngFor="let project of projects()"
+      class="dashboard-project-card clickable-card"
+      [routerLink]="['/projects', project.id, 'tasks']">
 
       <div class="project-header">
-        <span class="dot" [style.background]="project.color"></span>
+        <span class="dot"></span>
         <h3>{{ project.name }}</h3>
       </div>
 
-
-      <p>{{ project.description }}</p>
-
+      <p class="description">
+        {{ project.description?.split(' ').slice(0,5).join(' ') }}
+        <span *ngIf="project.description?.split(' ').length > 5">...</span>
+      </p>
 
       <div class="progress-bar">
         <div
           class="dashboard-progress"
-          [style.width.%]="project.progress">
+          [style.width.%]="project.totalTasks ? (project.tasksCompleted / project.totalTasks) * 100 : 0">
         </div>
       </div>
 
-
       <div class="project-footer">
-        <span>{{ project.tasks }} tasks</span>
-        <span>{{ project.progress }}%</span>
+        <span>{{ project.totalTasks || 0 }} tasks</span>
+        <span>{{ project.totalTasks ? ((project.tasksCompleted / project.totalTasks) * 100 | number:'1.0-0') : 0 }}%</span>
       </div>
 
-
-    </div>
+    </a>
   </div>
-
 
 </div>
