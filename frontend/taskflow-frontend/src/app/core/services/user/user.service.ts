@@ -1,6 +1,7 @@
-import { Injectable } from '@angular/core';
+import { Injectable, Inject, PLATFORM_ID } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable, BehaviorSubject } from 'rxjs';
+import { isPlatformBrowser } from '@angular/common';
 
 export interface User {
   name: string;
@@ -16,7 +17,10 @@ export class UserService {
   private currentUserSubject = new BehaviorSubject<User | null>(null);
   currentUser$ = this.currentUserSubject.asObservable();
 
-  constructor(private http: HttpClient) {}
+  constructor(
+    private http: HttpClient,
+    @Inject(PLATFORM_ID) private platformId: Object
+  ) {}
 
   getProfile(token: string): Observable<User> {
     const headers = new HttpHeaders({ Authorization: `Bearer ${token}` });
@@ -33,13 +37,17 @@ export class UserService {
 
   setCurrentUser(user: User) {
     this.currentUserSubject.next({ ...user });
-    sessionStorage.setItem('user', JSON.stringify(user));
+    if (isPlatformBrowser(this.platformId)) {
+      sessionStorage.setItem('user', JSON.stringify(user));
+    }
   }
 
   loadFromSession() {
-    const storedUser = sessionStorage.getItem('user');
-    if (storedUser) {
-      this.currentUserSubject.next(JSON.parse(storedUser));
+    if (isPlatformBrowser(this.platformId)) {
+      const storedUser = sessionStorage.getItem('user');
+      if (storedUser) {
+        this.currentUserSubject.next(JSON.parse(storedUser));
+      }
     }
   }
 }

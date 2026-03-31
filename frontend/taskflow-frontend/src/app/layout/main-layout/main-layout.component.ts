@@ -1,7 +1,7 @@
-import { Component } from '@angular/core';
+import { Component, Inject, PLATFORM_ID } from '@angular/core';
 import { Router } from '@angular/router';
 import { ButtonsModule } from '@progress/kendo-angular-buttons';
-import { CommonModule } from '@angular/common';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { UserService, User } from '../../core/services/user/user.service';
 import { Observable } from 'rxjs';
@@ -25,16 +25,20 @@ export class MainLayoutComponent {
 
   constructor(
     private router: Router,
-    private userService: UserService
+    private userService: UserService,
+    @Inject(PLATFORM_ID) private platformId: Object
   ) {
-    this.userService.loadFromSession();
-
+    if (isPlatformBrowser(this.platformId)) {
+      this.userService.loadFromSession();
+    }
     this.user$ = this.userService.currentUser$;
   }
 
   logout() {
-    sessionStorage.removeItem('token');
-    sessionStorage.removeItem('user');
+    if (isPlatformBrowser(this.platformId)) {
+      sessionStorage.removeItem('token');
+      sessionStorage.removeItem('user');
+    }
     this.router.navigate(['/auth']);
   }
 }
