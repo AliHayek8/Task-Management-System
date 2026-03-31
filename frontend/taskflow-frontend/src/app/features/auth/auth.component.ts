@@ -73,7 +73,6 @@ export class AuthComponent {
   }
 
   onLogin() {
-    console.log('Login clicked!', this.loginData);
 
     if (!this.loginData.email || !this.loginData.password) {
       this.errorMessage = 'Please fill in all fields';
@@ -83,7 +82,6 @@ export class AuthComponent {
 
     this.authService.login(this.loginData).subscribe({
       next: (response: any) => {
-        console.log('Login success!', response);
         sessionStorage.setItem('token', response.token);
         sessionStorage.setItem('user', JSON.stringify({
           id: response.id,
@@ -94,7 +92,6 @@ export class AuthComponent {
       },
 
       error: (err: any) => {
-        console.log('Login error details:', err.error);
         if (err.error && err.error.message) {
           this.errorMessage = err.error.message;
         } else {
@@ -126,7 +123,6 @@ export class AuthComponent {
       },
 
       error: (err: any) => {
-        console.log('Register error details:', err.error);
         if (err.error && err.error.message) {
           this.errorMessage = err.error.message;
         } else {
