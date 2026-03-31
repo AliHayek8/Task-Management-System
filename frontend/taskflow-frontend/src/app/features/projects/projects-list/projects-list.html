@@ -1,18 +1,41 @@
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+
 <div class="projects-page">
   <div class="header">
-    <h2>Projects</h2>
-    <button kendoButton class="btn-add-project" (click)="openAddProject()">+ New Project</button>
+    <div>
+      <h2>Projects</h2>
+      <span class="subtitle">Manage and track your work</span>
+    </div>
+
+    <button class="btn-add-project" (click)="openAddProject()">
+      + New Project
+    </button>
   </div>
 
   <div class="projects-grid">
     <div class="project-card" *ngFor="let p of projects()">
-      <h3>{{ p.name }}</h3>
-      <p>{{ p.description }}</p>
-      <p>{{ p.tasksCompleted }} / {{ p.totalTasks }} tasks completed</p>
 
       <div class="card-actions">
-        <button kendoButton class="btn-edit" (click)="openEditProject(p)">✏️ Edit</button>
-<button class="btn-delete" (click)="p.id && deleteProject(p.id)">🗑️ Delete</button>      </div>
+        <button class="btn-icon edit" (click)="openEditProject(p)">
+          <i class="fa-solid fa-pen"></i>
+        </button>
+        <button class="btn-icon delete" (click)="p.id && deleteProject(p.id)">
+          <i class="fa-solid fa-trash"></i>
+        </button>
+      </div>
+
+      <div class="card-content">
+        <h3>{{ p.name }}</h3>
+        <p class="description">{{ p.description }}</p>
+      </div>
+
+      <div class="card-footer">
+  <span class="tasks-badge">
+    {{ p.tasksCompleted }} / {{ p.totalTasks }} tasks
+  </span>
+      </div>
+
     </div>
   </div>
 
