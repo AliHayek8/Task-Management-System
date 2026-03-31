@@ -10,14 +10,7 @@
       </div>
     </div>
 
-    <div class="tabs-list">
-      <button [class.active]="selectedTab() === 'general'" (click)="selectedTab.set('general')">
-        General
-      </button>
-      <button [class.active]="selectedTab() === 'security'" (click)="selectedTab.set('security')">
-        Security
-      </button>
-    </div>
+   
 
     <div *ngIf="selectedTab() === 'general'">
       <div class="form-group">
