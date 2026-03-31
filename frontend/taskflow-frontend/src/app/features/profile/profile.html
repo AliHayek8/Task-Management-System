@@ -10,7 +10,7 @@
       </div>
     </div>
 
-   
+
 
     <div *ngIf="selectedTab() === 'general'">
       <div class="form-group">
@@ -20,8 +20,9 @@
 
       <div class="form-group">
         <label>Email</label>
-        <input [(ngModel)]="editableUser.email" type="email" readonly />
+        <p class="email-text">{{ user.email }}</p>
       </div>
+
 
       <div class="actions">
         <button class="save-btn" (click)="saveGeneral()">Save Changes</button>
