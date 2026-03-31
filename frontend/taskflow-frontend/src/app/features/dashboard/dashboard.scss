@@ -1,127 +1,109 @@
 .dashboard {
- padding: 24px;
- font-family: Arial, sans-serif;
-
-
- h1 {
-   margin-bottom: 4px;
- }
-
-
- .subtitle {
-   color: #6b7280;
-   margin-bottom: 20px;
- }
+  padding: 2rem;
 }
 
+h1 {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #1a1a2e;
+}
+
+.subtitle {
+  color: #6b7280;
+  margin-bottom: 1.5rem;
+}
 
 .stats {
- display: grid;
- grid-template-columns: repeat(4, 1fr);
- gap: 16px;
- margin-bottom: 30px;
-
-
- .card {
-   background: #f9fafb;
-   padding: 16px;
-   border-radius: 12px;
-   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
-
-
-   .card-header {
-     display: flex;
-     justify-content: space-between;
-     margin-bottom: 10px;
-     color: #6b7280;
-   }
-
-
-   h2 {
-     font-size: 24px;
-     margin: 0;
-   }
-}
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  margin-bottom: 2rem;
 }
 
+.card {
+  background: white;
+  border-radius: 12px;
+  padding: 1rem;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.9rem;
+  color: #6b7280;
+}
+
+.card h2 {
+  margin-top: 0.5rem;
+  font-size: 1.5rem;
+}
 
 .section-title {
- margin-bottom: 16px;
- font-size: 20px;
- color: #111827;
+  margin-bottom: 1rem;
+  font-weight: 600;
 }
-
 
 .projects {
- display: grid;
- grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
- gap: 16px;
-
-
- .dashboard-project-card {
-   background: #f9fafb;
-   padding: 16px;
-   border-radius: 12px;
-   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
-   display: flex;
-   flex-direction: column;
-
-
-   .project-header {
-     display: flex;
-     align-items: center;
-     gap: 8px;
-     margin-bottom: 8px;
-
-
-     .dot {
-       width: 10px;
-       height: 10px;
-       border-radius: 50%;
-     }
-
-
-     h3 {
-       margin: 0;
-       font-size: 18px;
-       color: #111827;
-     }
-   }
-
-
-   p {
-     margin: 8px 0 12px 0;
-     color: #374151;
-     font-size: 14px;
-   }
-
-
-   .progress-bar {
-     background: #e5e7eb;
-     height: 8px;
-     border-radius: 6px;
-     overflow: hidden;
-     margin-bottom: 12px;
-
-
-     .dashboard-progress {
-       height: 100%;
-       background: #4f6bed;
-       border-radius: 6px;
-       transition: width 0.3s ease;
-     }
-   }
-
-
-   .project-footer {
-     display: flex;
-     justify-content: space-between;
-     font-size: 14px;
-     color: #6b7280;
-   }
- }
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 1rem;
 }
-.stats .card-header i {
- font-size: 20px;
- margin-left: 8px;
+
+.dashboard-project-card {
+  display: block;
+  background: white;
+  border-radius: 12px;
+  padding: 1rem;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  text-decoration: none;
+  color: inherit;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  transition: box-shadow 0.2s;
+}
+
+.dashboard-project-card:hover {
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.project-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.dot {
+  width: 10px;
+  height: 10px;
+  background: #4f46e5;
+  border-radius: 50%;
+}
+
+.description {
+  font-size: 0.85rem;
+  color: #6b7280;
+  min-height: 40px;
+}
+
+.progress-bar {
+  width: 100%;
+  height: 6px;
+  background: #e5e7eb;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.dashboard-progress {
+  height: 100%;
+  background: #4f46e5;
+}
+
+.project-footer {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.8rem;
+  color: #6b7280;
 }

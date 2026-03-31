@@ -9,6 +9,11 @@ export interface Task {
   description: string;
   status: 'TODO' | 'IN_PROGRESS' | 'DONE';
   priority: 'LOW' | 'MEDIUM' | 'HIGH';
+  assignee?: {
+    id: number;
+    email: string;
+    name?: string;
+  };
   assigneeEmail?: string;
   assigneeName?: string;
   deadline?: string;
