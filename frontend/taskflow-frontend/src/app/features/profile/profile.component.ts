@@ -1,5 +1,5 @@
-import { Component, signal, OnInit } from '@angular/core';
-
+import { Component, signal, OnInit, Inject, PLATFORM_ID } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { UserService, User } from '../../core/services/user/user.service';
 
@@ -14,12 +14,17 @@ export class ProfileComponent implements OnInit {
   user: User = { name: '', email: '' };
   editableUser: User = { name: '', email: '' };
 
-  selectedTab = signal<'general' | 'security'>('general');
+  selectedTab = signal<'general'>('general');
   token: string = '';
 
-  constructor(private userService: UserService) {}
+  constructor(
+    private userService: UserService,
+    @Inject(PLATFORM_ID) private platformId: Object
+  ) {}
 
   ngOnInit() {
+    if (!isPlatformBrowser(this.platformId)) return;
+
     this.token = sessionStorage.getItem('token') || '';
 
     const storedUser = sessionStorage.getItem('user');
@@ -38,7 +43,6 @@ export class ProfileComponent implements OnInit {
       next: (res) => {
         this.user = res;
         this.editableUser = { ...res };
-
         this.userService.setCurrentUser(res);
       },
       error: (err) => console.error(err),
@@ -54,17 +58,17 @@ export class ProfileComponent implements OnInit {
     this.userService.updateName(this.token, this.editableUser.name).subscribe({
       next: (res: User) => {
         console.log('SAVED USER:', res);
-
         this.user = res;
         this.editableUser = { ...res };
-
         this.userService.setCurrentUser(res);
-
         alert('Profile updated successfully!');
-      }
+      },
+      error: (err) => console.error(err),
     });
   }
-cancelEdit() {
-  this.editableUser = { ...this.user };
-}
+
+  cancelEdit() {
+    this.editableUser = { ...this.user };
+  }
+
 }
