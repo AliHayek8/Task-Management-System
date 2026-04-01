@@ -1,9 +1,10 @@
 import { Component, OnInit, signal, Inject, PLATFORM_ID, ChangeDetectorRef } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { ButtonsModule } from '@progress/kendo-angular-buttons';
 import { TaskService, Task } from '../../../core/services/task/task.service';
+import { ProjectService } from '../../../core/services/project/project.service';
 
 @Component({
   selector: 'app-task-board',
@@ -15,6 +16,7 @@ import { TaskService, Task } from '../../../core/services/task/task.service';
 export class TaskBoard implements OnInit {
 
   projectId!: number;
+  projectName = '';
   tasks = signal<Task[]>([]);
   showDialog = signal(false);
   isEditMode = signal(false);
@@ -33,7 +35,9 @@ export class TaskBoard implements OnInit {
 
   constructor(
     private route: ActivatedRoute,
+    private router: Router,
     private taskService: TaskService,
+    private projectService: ProjectService,
     private cdr: ChangeDetectorRef,
     @Inject(PLATFORM_ID) private platformId: Object
   ) {}
@@ -42,7 +46,29 @@ export class TaskBoard implements OnInit {
     this.projectId = Number(this.route.snapshot.paramMap.get('projectId')) || 1;
     if (isPlatformBrowser(this.platformId)) {
       this.loadTasks();
+      this.loadProjectName();
     }
+  }
+
+  loadProjectName() {
+    if (isPlatformBrowser(this.platformId)) {
+      const user = JSON.parse(sessionStorage.getItem('user') || '{}');
+      if (user?.id) {
+        this.projectService.getProjectsByOwner(user.id).subscribe({
+          next: (projects) => {
+            const project = projects.find(p => p.id === this.projectId);
+            if (project) {
+              this.projectName = project.name;
+            }
+          },
+          error: () => {}
+        });
+      }
+    }
+  }
+
+  goBackToProjects() {
+    this.router.navigate(['/projects']);
   }
 
   loadTasks() {
