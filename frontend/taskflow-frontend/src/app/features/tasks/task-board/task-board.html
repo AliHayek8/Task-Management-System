@@ -2,7 +2,15 @@
 
   <!-- Header -->
   <div class="board-header">
-    <h2>Task Board</h2>
+    <div class="header-left">
+      <button kendoButton fillMode="flat" class="back-btn" (click)="goBackToProjects()">
+        ← Back
+      </button>
+      <div class="header-title">
+        <h2>Task Board</h2>
+        <span class="project-name" *ngIf="projectName">{{ projectName }}</span>
+      </div>
+    </div>
   </div>
 
   <!-- رسالة الخطأ العامة -->

@@ -308,3 +308,29 @@
   from { opacity: 0; transform: translateY(-10px); }
   to { opacity: 1; transform: translateY(0); }
 }
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.header-title {
+  display: flex;
+  flex-direction: column;
+
+  h2 {
+    margin: 0;
+  }
+
+  .project-name {
+    font-size: 0.9rem;
+    color: #6b7280;
+    font-weight: 400;
+  }
+}
+
+.back-btn {
+  color: #4f46e5 !important;
+  font-size: 0.95rem !important;
+}
