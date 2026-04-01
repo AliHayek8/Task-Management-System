@@ -12,22 +12,21 @@
 
 
 
-    <div *ngIf="selectedTab() === 'general'">
-      <div class="form-group">
-        <label>Full Name</label>
-        <input [(ngModel)]="editableUser.name" type="text" />
+    @if (selectedTab() === 'general') {
+      <div>
+        <div class="form-group">
+          <label>Full Name</label>
+          <input [(ngModel)]="editableUser.name" type="text" />
+        </div>
+        <div class="form-group">
+          <label>Email</label>
+          <p class="email-text">{{ user.email }}</p>
+        </div>
+        <div class="actions">
+          <button class="save-btn" (click)="saveGeneral()">Save Changes</button>
+          <button class="cancel-btn" (click)="cancelEdit()">Cancel</button>
+        </div>
       </div>
-
-      <div class="form-group">
-        <label>Email</label>
-        <p class="email-text">{{ user.email }}</p>
-      </div>
-
-
-      <div class="actions">
-        <button class="save-btn" (click)="saveGeneral()">Save Changes</button>
-        <button class="cancel-btn" (click)="cancelEdit()">Cancel</button>
-      </div>
-    </div>
+    }
   </div>
 </div>

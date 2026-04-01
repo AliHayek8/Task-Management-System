@@ -1,12 +1,12 @@
 import { Component, signal, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { FormsModule } from '@angular/forms';
 import { UserService, User } from '../../core/services/user/user.service';
 
 @Component({
   selector: 'app-profile',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [FormsModule],
   templateUrl: './profile.html',
   styleUrls: ['./profile.scss'],
 })

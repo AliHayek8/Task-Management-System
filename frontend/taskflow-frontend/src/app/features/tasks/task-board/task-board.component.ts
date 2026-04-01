@@ -1,5 +1,5 @@
 import { Component, OnInit, signal, Inject, PLATFORM_ID, ChangeDetectorRef } from '@angular/core';
-import { CommonModule, isPlatformBrowser } from '@angular/common';
+import { isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ButtonsModule } from '@progress/kendo-angular-buttons';
@@ -9,7 +9,7 @@ import { ProjectService } from '../../../core/services/project/project.service';
 @Component({
   selector: 'app-task-board',
   standalone: true,
-  imports: [CommonModule, FormsModule, ButtonsModule],
+  imports: [FormsModule, ButtonsModule],
   templateUrl: './task-board.html',
   styleUrl: './task-board.scss'
 })

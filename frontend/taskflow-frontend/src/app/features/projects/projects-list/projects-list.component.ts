@@ -3,7 +3,7 @@ import { isPlatformBrowser } from '@angular/common';
 import { ProjectService } from '../../../core/services/project/project.service';
 import { TaskService, Task } from '../../../core/services/task/task.service';
 import { ProjectFormComponent } from '../project-form/project-form.component';
-import { CommonModule } from '@angular/common';
+
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 
@@ -21,7 +21,7 @@ export interface Project {
   templateUrl: './projects-list.html',
   styleUrls: ['./projects-list.scss'],
   standalone: true,
-  imports: [CommonModule, FormsModule, ProjectFormComponent, RouterModule],
+  imports: [FormsModule, ProjectFormComponent, RouterModule],
 })
 
 export class ProjectsListComponent implements OnInit {
