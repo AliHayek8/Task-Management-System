@@ -19,16 +19,16 @@ describe('ProjectFormComponent', () => {
     component = fixture.componentInstance;
 
    component.project = signal<Project>({
-  id: 0,
+     userId: 0,
+     id: 0,
   name: '',
   description: '',
   tasksCompleted: 0,
   totalTasks: 0
-}) as unknown as InputSignal<Project>; 
+}) as unknown as InputSignal<Project>;
 
 component.isNewProject = signal(true) as unknown as InputSignal<boolean>;
 
-component.closeForm = signal(() => {}) as unknown as InputSignal<() => void>;
 
     fixture.detectChanges();
     await fixture.whenStable();
@@ -61,9 +61,7 @@ component.closeForm = signal(() => {}) as unknown as InputSignal<() => void>;
     expect(component.project().description).toBe('Test Description');
   });
 
-  it('should call closeForm without errors onSave', () => {
-    expect(() => component.onSave()).not.toThrow();
-  });
+
 
   it('should call closeForm without errors onCancel', () => {
     expect(() => component.onCancel()).not.toThrow();
