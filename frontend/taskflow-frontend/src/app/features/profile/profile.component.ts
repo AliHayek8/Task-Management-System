@@ -1,4 +1,4 @@
-import { Component, signal, OnInit, Inject, PLATFORM_ID } from '@angular/core';
+import { Component, OnInit, Inject, PLATFORM_ID } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { UserService, User } from '../../core/services/user/user.service';
@@ -12,9 +12,7 @@ import { UserService, User } from '../../core/services/user/user.service';
 })
 export class ProfileComponent implements OnInit {
   user: User = { name: '', email: '' };
-  editableUser: User = { name: '', email: '' };
-
-  selectedTab = signal<'general'>('general');
+  editedName: string = '';
   token: string = '';
 
   constructor(
@@ -30,7 +28,7 @@ export class ProfileComponent implements OnInit {
     const storedUser = sessionStorage.getItem('user');
     if (storedUser) {
       this.user = JSON.parse(storedUser);
-      this.editableUser = { ...this.user };
+      this.editedName = this.user.name;
     }
 
     this.fetchUser();
@@ -42,7 +40,7 @@ export class ProfileComponent implements OnInit {
     this.userService.getProfile(this.token).subscribe({
       next: (res) => {
         this.user = res;
-        this.editableUser = { ...res };
+        this.editedName = res.name;
         this.userService.setCurrentUser(res);
       },
       error: (err) => console.error(err),
@@ -50,16 +48,15 @@ export class ProfileComponent implements OnInit {
   }
 
   saveGeneral() {
-    if (!this.editableUser.name.trim()) {
+    if (!this.editedName.trim()) {
       alert('Name cannot be empty!');
       return;
     }
 
-    this.userService.updateName(this.token, this.editableUser.name).subscribe({
+    this.userService.updateName(this.token, this.editedName).subscribe({
       next: (res: User) => {
-        console.log('SAVED USER:', res);
         this.user = res;
-        this.editableUser = { ...res };
+        this.editedName = res.name;
         this.userService.setCurrentUser(res);
         alert('Profile updated successfully!');
       },
@@ -68,7 +65,6 @@ export class ProfileComponent implements OnInit {
   }
 
   cancelEdit() {
-    this.editableUser = { ...this.user };
+    this.editedName = this.user.name;
   }
-
 }
