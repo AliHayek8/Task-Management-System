@@ -43,8 +43,9 @@
   <app-project-form
     [project]="currentProject()"
     [isNewProject]="!currentProject().id"
-    [save]="saveProject.bind(this)"
-    [cancel]="cancel.bind(this)">
+    (save)="saveProject()"
+    (cancel)="cancel()"
+  >
   </app-project-form>
   }
 </div>

@@ -64,8 +64,8 @@ export class ProjectsListComponent implements OnInit {
                   };
 
                   this.projects.set(
-                    this.projects().map(proj =>
-                      proj.id === updatedProject.id ? updatedProject : proj
+                    this.projects().map(project =>
+                      project.id === updatedProject.id ? updatedProject : project
                     )
                   );
                 },
@@ -83,13 +83,18 @@ export class ProjectsListComponent implements OnInit {
     this.showPopup.set(true);
   }
 
+  openEditProject(projectToEdit: Project) {
+    this.currentProject.set({ ...projectToEdit });
+    this.showPopup.set(true);
+  }
+
   cancel() {
     this.showPopup.set(false);
   }
 
   saveProject() {
     const user = JSON.parse(sessionStorage.getItem('user') || '{}');
-    if (user?.id) this.loadProjects(user.id);
+    if (!user?.id) return;
 
     const projectToSave = this.currentProject();
 
@@ -118,20 +123,12 @@ export class ProjectsListComponent implements OnInit {
     }
   }
 
-  openEditProject(projectToEdit: Project) {
-    this.currentProject.set({ ...projectToEdit });
-    this.showPopup.set(true);
-  }
-
   deleteProject(projectId: number) {
     if (!confirm('Are you sure you want to delete this project?')) return;
 
-    const user = JSON.parse(sessionStorage.getItem('user') || '{}');
-    if (user?.id) this.loadProjects(user.id);
-
     this.projectService.deleteProject(projectId).subscribe({
       next: () => {
-        this.loadProjects(user.id);
+        this.projects.set(this.projects().filter(project => project.id !== projectId));
       },
       error: (err) => console.error(err)
     });
