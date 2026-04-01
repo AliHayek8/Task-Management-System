@@ -132,10 +132,6 @@ export class TaskBoard implements OnInit {
   }
 
   validateAssigneeEmail() {
-    if (this.fieldErrors.assigneeEmail === 'This email is not registered in the system') {
-      return;
-    }
-
     if (this.taskForm.assigneeEmail && this.taskForm.assigneeEmail.trim().length > 0) {
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       if (!emailRegex.test(this.taskForm.assigneeEmail)) {
