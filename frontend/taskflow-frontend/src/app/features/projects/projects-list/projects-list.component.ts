@@ -1,5 +1,5 @@
 import { Component, OnInit, Inject, PLATFORM_ID, signal } from '@angular/core';
-import { isPlatformBrowser } from '@angular/common';
+import {CommonModule, isPlatformBrowser} from '@angular/common';
 import { ProjectService } from '../../../core/services/project/project.service';
 import { TaskService, Task } from '../../../core/services/task/task.service';
 import { ProjectFormComponent } from '../project-form/project-form.component';
@@ -21,7 +21,7 @@ export interface Project {
   templateUrl: './projects-list.html',
   styleUrls: ['./projects-list.scss'],
   standalone: true,
-  imports: [FormsModule, ProjectFormComponent, RouterModule],
+  imports: [FormsModule, ProjectFormComponent, RouterModule,CommonModule],
 })
 export class ProjectsListComponent implements OnInit {
   projects = signal<Project[]>([]);
