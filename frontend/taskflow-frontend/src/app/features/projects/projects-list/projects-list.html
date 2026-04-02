@@ -13,40 +13,39 @@
   </div>
 
   <div class="projects-grid">
-    <div class="project-card" *ngFor="let p of projects()">
-
+    @for (projectItem of projects(); track projectItem) {
+    <div class="project-card">
       <div class="card-actions">
-        <button class="btn-icon tasks" [routerLink]="['/projects', p.id, 'tasks']">
+        <button class="btn-icon tasks" [routerLink]="['/projects', projectItem.id, 'tasks']">
           <i class="fa-solid fa-list-check"></i>
         </button>
-        <button class="btn-icon edit" (click)="openEditProject(p)">
+        <button class="btn-icon edit" (click)="openEditProject(projectItem)">
           <i class="fa-solid fa-pen"></i>
         </button>
-        <button class="btn-icon delete" (click)="p.id && deleteProject(p.id)">
+        <button class="btn-icon delete" (click)="projectItem.id && deleteProject(projectItem.id)">
           <i class="fa-solid fa-trash"></i>
         </button>
       </div>
-
       <div class="card-content">
-        <h3>{{ p.name }}</h3>
-        <p class="description">{{ p.description }}</p>
+        <h3>{{ projectItem.name }}</h3>
+        <p class="description">{{ projectItem.description }}</p>
       </div>
-
       <div class="card-footer">
-  <span class="tasks-badge">
-    {{ p.tasksCompleted || 0 }} / {{ p.totalTasks || 0 }} tasks
-  </span>
+          <span class="tasks-badge">
+            {{ projectItem.tasksCompleted || 0 }} / {{ projectItem.totalTasks || 0 }} tasks
+          </span>
       </div>
-
     </div>
+    }
   </div>
 
-  <ng-container *ngIf="showPopup()">
-    <app-project-form
-      [project]="project()"
-      [isNewProject]="!project().id"
-      [save]="saveProject.bind(this)"
-      [cancel]="cancel.bind(this)">
-    </app-project-form>
-  </ng-container>
+  @if (showPopup()) {
+  <app-project-form
+    [project]="currentProject()"
+    [isNewProject]="!currentProject().id"
+    (save)="saveProject()"
+    (cancel)="cancel()"
+  >
+  </app-project-form>
+  }
 </div>

@@ -10,12 +10,10 @@
       </div>
     </div>
 
-
-
-    <div *ngIf="selectedTab() === 'general'">
+    <form>
       <div class="form-group">
-        <label>Full Name</label>
-        <input [(ngModel)]="editableUser.name" type="text" />
+        <label for="name">Full Name</label>
+        <input id="name" [(ngModel)]="editedName" name="name" type="text" />
       </div>
 
       <div class="form-group">
@@ -23,11 +21,10 @@
         <p class="email-text">{{ user.email }}</p>
       </div>
 
-
       <div class="actions">
-        <button class="save-btn" (click)="saveGeneral()">Save Changes</button>
-        <button class="cancel-btn" (click)="cancelEdit()">Cancel</button>
+        <button type="button" class="save-btn" (click)="saveGeneral()">Save Changes</button>
+        <button type="button" class="cancel-btn" (click)="cancelEdit()">Cancel</button>
       </div>
-    </div>
+    </form>
   </div>
 </div>

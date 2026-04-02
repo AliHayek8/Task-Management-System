@@ -5,28 +5,30 @@
       <div class="menu-label">Menu</div>
 
       <nav class="nav-links">
-        <a
-  *ngFor="let item of items"
-  [routerLink]="item.route"
-  routerLinkActive="active"
-  [routerLinkActiveOptions]="{ exact: true }"
-  class="nav-item"
->
-  {{ item.text }}
-</a>
+        @for (item of items; track item) {
+          <a
+            [routerLink]="item.route"
+            routerLinkActive="active"
+            [routerLinkActiveOptions]="{ exact: true }"
+            class="nav-item"
+            >
+            {{ item.text }}
+          </a>
+        }
       </nav>
     </div>
 
-    <div class="user-account" *ngIf="user$ | async as user">
-      <div class="user-info">
-        <div class="user-name">{{ user.name }}</div>
-        <div class="user-email">{{ user.email }}</div>
+    @if (user$ | async; as user) {
+      <div class="user-account">
+        <div class="user-info">
+          <div class="user-name">{{ user.name }}</div>
+          <div class="user-email">{{ user.email }}</div>
+        </div>
+        <button kendoButton themeColor="primary" (click)="logout()">
+          Sign Out
+        </button>
       </div>
-
-      <button kendoButton themeColor="primary" (click)="logout()">
-        Sign Out
-      </button>
-    </div>
+    }
   </aside>
 
   <main class="content">

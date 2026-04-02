@@ -6,46 +6,46 @@
   <p class="subtitle">Overview of all your projects and tasks</p>
 
   <div class="stats">
-    <div class="card" *ngFor="let stat of stats()">
-      <div class="card-header">
-        <span>{{ stat.title }}</span>
-        <i class="fa-solid" [ngClass]="stat.icon" [style.color]="stat.color"></i>
+    @for (stat of stats(); track stat) {
+      <div class="card">
+        <div class="card-header">
+          <span>{{ stat.title }}</span>
+          <i class="fa-solid" [ngClass]="stat.icon" [style.color]="stat.color"></i>
+        </div>
+        <h2>{{ stat.value }}</h2>
       </div>
-      <h2>{{ stat.value }}</h2>
-    </div>
+    }
   </div>
 
   <h2 class="section-title">Projects</h2>
 
   <div class="projects">
-    <a
-      *ngFor="let project of projects()"
-      class="dashboard-project-card clickable-card"
-      [routerLink]="['/projects', project.id, 'tasks']">
-
-      <div class="project-header">
-        <span class="dot"></span>
-        <h3>{{ project.name }}</h3>
-      </div>
-
-      <p class="description">
-        {{ project.description?.split(' ').slice(0,5).join(' ') }}
-        <span *ngIf="project.description?.split(' ').length > 5">...</span>
-      </p>
-
-      <div class="progress-bar">
-        <div
-          class="dashboard-progress"
-          [style.width.%]="project.totalTasks ? (project.tasksCompleted / project.totalTasks) * 100 : 0">
+    @for (project of projects(); track project) {
+      <a
+        class="dashboard-project-card clickable-card"
+        [routerLink]="['/projects', project.id, 'tasks']">
+        <div class="project-header">
+          <span class="dot"></span>
+          <h3>{{ project.name }}</h3>
         </div>
-      </div>
-
-      <div class="project-footer">
-        <span>{{ project.totalTasks || 0 }} tasks</span>
-        <span>{{ project.totalTasks ? ((project.tasksCompleted / project.totalTasks) * 100 | number:'1.0-0') : 0 }}%</span>
-      </div>
-
-    </a>
+        <p class="description">
+          {{ project.description?.split(' ').slice(0,5).join(' ') }}
+          @if (project.description?.split(' ').length > 5) {
+            <span>...</span>
+          }
+        </p>
+        <div class="progress-bar">
+          <div
+            class="dashboard-progress"
+            [style.width.%]="project.totalTasks ? (project.tasksCompleted / project.totalTasks) * 100 : 0">
+          </div>
+        </div>
+        <div class="project-footer">
+          <span>{{ project.totalTasks || 0 }} tasks</span>
+          <span>{{ project.totalTasks ? ((project.tasksCompleted / project.totalTasks) * 100 | number:'1.0-0') : 0 }}%</span>
+        </div>
+      </a>
+    }
   </div>
 
 </div>

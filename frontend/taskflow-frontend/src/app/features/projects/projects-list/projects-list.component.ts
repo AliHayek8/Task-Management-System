@@ -3,7 +3,7 @@ import { isPlatformBrowser } from '@angular/common';
 import { ProjectService } from '../../../core/services/project/project.service';
 import { TaskService, Task } from '../../../core/services/task/task.service';
 import { ProjectFormComponent } from '../project-form/project-form.component';
-import { CommonModule } from '@angular/common';
+
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 
@@ -21,14 +21,13 @@ export interface Project {
   templateUrl: './projects-list.html',
   styleUrls: ['./projects-list.scss'],
   standalone: true,
-  imports: [CommonModule, FormsModule, ProjectFormComponent, RouterModule],
+  imports: [FormsModule, ProjectFormComponent, RouterModule],
 })
-
 export class ProjectsListComponent implements OnInit {
   projects = signal<Project[]>([]);
   showPopup = signal(false);
 
-  project = signal<Project>({
+  currentProject = signal<Project>({
     id: 0,
     name: '',
     description: '',
@@ -51,24 +50,23 @@ export class ProjectsListComponent implements OnInit {
   loadProjects(ownerId: number) {
     this.projectService.getProjectsByOwner(ownerId)
       .subscribe({
-        next: (data) => {
-          // ضع المشاريع في الـ signal
-          this.projects.set(data);
+        next: (projectsList) => {
+          this.projects.set(projectsList);
 
-          // لكل مشروع، اجلب الكاردات وعدد الـ DONE
-          data.forEach(project => {
+          projectsList.forEach(project => {
             if (project.id) {
               this.taskService.getTasksByProject(project.id).subscribe({
-                next: (tasks: Task[]) => {
+                next: (tasksList: Task[]) => {
                   const updatedProject: Project = {
                     ...project,
-                    totalTasks: tasks.length,
-                    tasksCompleted: tasks.filter(t => t.status === 'DONE').length
+                    totalTasks: tasksList.length,
+                    tasksCompleted: tasksList.filter(task => task.status === 'DONE').length
                   };
 
-                  // تحديث الـ projects signal
                   this.projects.set(
-                    this.projects().map(p => p.id === updatedProject.id ? updatedProject : p)
+                    this.projects().map(project =>
+                      project.id === updatedProject.id ? updatedProject : project
+                    )
                   );
                 },
                 error: (err) => console.error(err)
@@ -81,7 +79,12 @@ export class ProjectsListComponent implements OnInit {
   }
 
   openAddProject() {
-    this.project.set({ id: 0, name: '', description: '', userId: 0 });
+    this.currentProject.set({ id: 0, name: '', description: '', userId: 0 });
+    this.showPopup.set(true);
+  }
+
+  openEditProject(projectToEdit: Project) {
+    this.currentProject.set({ ...projectToEdit });
     this.showPopup.set(true);
   }
 
@@ -91,17 +94,17 @@ export class ProjectsListComponent implements OnInit {
 
   saveProject() {
     const user = JSON.parse(sessionStorage.getItem('user') || '{}');
-    if (user?.id) this.loadProjects(user.id);
+    if (!user?.id) return;
 
-    const currentProject = this.project();
+    const projectToSave = this.currentProject();
 
-    if (currentProject.id) {
-      const { id, ...payload } = currentProject;
+    if (projectToSave.id) {
+      const { id, ...payload } = projectToSave;
       this.projectService.updateProject(id, payload).subscribe({
         next: (updatedProject) => {
           this.projects.set(
-            this.projects().map(p =>
-              p.id === updatedProject.id ? updatedProject : p
+            this.projects().map(proj =>
+              proj.id === updatedProject.id ? updatedProject : proj
             )
           );
           this.showPopup.set(false);
@@ -109,7 +112,7 @@ export class ProjectsListComponent implements OnInit {
         error: (err) => console.error(err)
       });
     } else {
-      const newProject = { ...currentProject, userId: user.id };
+      const newProject = { ...projectToSave, userId: user.id };
       this.projectService.createProject(newProject).subscribe({
         next: (createdProject) => {
           this.projects.set([...this.projects(), createdProject]);
@@ -120,20 +123,12 @@ export class ProjectsListComponent implements OnInit {
     }
   }
 
-  openEditProject(p: Project) {
-    this.project.set({ ...p });
-    this.showPopup.set(true);
-  }
-
-  deleteProject(id: number) {
+  deleteProject(projectId: number) {
     if (!confirm('Are you sure you want to delete this project?')) return;
 
-    const user = JSON.parse(sessionStorage.getItem('user') || '{}');
-    if (user?.id) this.loadProjects(user.id);
-
-    this.projectService.deleteProject(id).subscribe({
+    this.projectService.deleteProject(projectId).subscribe({
       next: () => {
-        this.loadProjects(user.id);
+        this.projects.set(this.projects().filter(project => project.id !== projectId));
       },
       error: (err) => console.error(err)
     });

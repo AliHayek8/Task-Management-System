@@ -3,7 +3,6 @@
     <div class="popup-content">
       <h3>{{ project().id ? 'Edit Project' : 'New Project' }}</h3>
 
-      <!-- Name field -->
       <div class="form-group">
         <label class="form-label">
           <span class="required-star">*</span> Name
@@ -14,49 +13,55 @@
           required
           minlength="3"
           #nameRef="ngModel"
-        />
-        <div class="error" *ngIf="nameRef.invalid && nameRef.touched">
-          <small *ngIf="nameRef.errors?.['required']">Name is required</small>
-          <small *ngIf="nameRef.errors?.['minlength']">
-            Minimum 3 characters
-          </small>
+          />
+          @if (nameRef.invalid && nameRef.touched) {
+            <div class="error">
+              @if (nameRef.errors?.['required']) {
+                <small>Name is required</small>
+              }
+              @if (nameRef.errors?.['minlength']) {
+                <small>
+                  Minimum 3 characters
+                </small>
+              }
+            </div>
+          }
         </div>
-      </div>
 
-      <!-- Description field -->
-      <div class="form-group">
-        <label class="form-label">Description</label>
-        <textarea
-          name="description"
-          [(ngModel)]="project().description"
-          #descRef="ngModel"
-          (ngModelChange)="checkDescription($event)"
-        ></textarea>
-        <div class="error" *ngIf="descRef.touched && descriptionError">
-          <small>Description must be at least 30 characters</small>
+        <div class="form-group">
+          <label class="form-label">Description</label>
+          <textarea
+            name="description"
+            [(ngModel)]="project().description"
+            #descRef="ngModel"
+            (ngModelChange)="checkDescription($event)"
+          ></textarea>
+          @if (descRef.touched && descriptionError) {
+            <div class="error">
+              <small>Description must be at least 30 characters</small>
+            </div>
+          }
         </div>
-      </div>
 
-      <!-- Actions -->
-      <div class="popup-actions">
-        <button
-          kendoButton
-          class="btn-save"
-          type="submit"
-          [disabled]="form.invalid || descriptionError"
-        >
-          Save
-        </button>
+        <div class="popup-actions">
+          <button
+            kendoButton
+            class="btn-save"
+            type="submit"
+            [disabled]="form.invalid || descriptionError"
+            >
+            Save
+          </button>
 
-        <button
-          kendoButton
-          type="button"
-          (click)="onCancel()"
-          class="btn-cancel"
-        >
-          Cancel
-        </button>
+          <button
+            kendoButton
+            type="button"
+            (click)="onCancel()"
+            class="btn-cancel"
+            >
+            Cancel
+          </button>
+        </div>
       </div>
     </div>
-  </div>
-</form>
+  </form>

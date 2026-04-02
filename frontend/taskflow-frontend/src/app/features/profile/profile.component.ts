@@ -1,31 +1,34 @@
-import { Component, signal, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, OnInit, Inject, PLATFORM_ID } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { UserService, User } from '../../core/services/user/user.service';
 
 @Component({
   selector: 'app-profile',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [FormsModule],
   templateUrl: './profile.html',
   styleUrls: ['./profile.scss'],
 })
 export class ProfileComponent implements OnInit {
   user: User = { name: '', email: '' };
-  editableUser: User = { name: '', email: '' };
-
-  selectedTab = signal<'general' | 'security'>('general');
+  editedName: string = '';
   token: string = '';
 
-  constructor(private userService: UserService) {}
+  constructor(
+    private userService: UserService,
+    @Inject(PLATFORM_ID) private platformId: Object
+  ) {}
 
   ngOnInit() {
+    if (!isPlatformBrowser(this.platformId)) return;
+
     this.token = sessionStorage.getItem('token') || '';
 
     const storedUser = sessionStorage.getItem('user');
     if (storedUser) {
       this.user = JSON.parse(storedUser);
-      this.editableUser = { ...this.user };
+      this.editedName = this.user.name;
     }
 
     this.fetchUser();
@@ -37,8 +40,7 @@ export class ProfileComponent implements OnInit {
     this.userService.getProfile(this.token).subscribe({
       next: (res) => {
         this.user = res;
-        this.editableUser = { ...res };
-
+        this.editedName = res.name;
         this.userService.setCurrentUser(res);
       },
       error: (err) => console.error(err),
@@ -46,25 +48,23 @@ export class ProfileComponent implements OnInit {
   }
 
   saveGeneral() {
-    if (!this.editableUser.name.trim()) {
+    if (!this.editedName.trim()) {
       alert('Name cannot be empty!');
       return;
     }
 
-    this.userService.updateName(this.token, this.editableUser.name).subscribe({
+    this.userService.updateName(this.token, this.editedName).subscribe({
       next: (res: User) => {
-        console.log('SAVED USER:', res);
-
         this.user = res;
-        this.editableUser = { ...res };
-
+        this.editedName = res.name;
         this.userService.setCurrentUser(res);
-
         alert('Profile updated successfully!');
-      }
+      },
+      error: (err) => console.error(err),
     });
   }
-cancelEdit() {
-  this.editableUser = { ...this.user };
-}
+
+  cancelEdit() {
+    this.editedName = this.user.name;
+  }
 }
