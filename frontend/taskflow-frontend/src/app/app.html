@@ -1,1 +1,12 @@
-<router-outlet></router-outlet>
+<div class="app-boot-loader" *ngIf="isBooting()">
+  <div class="boot-content">
+    <div class="boot-logo">TaskFlow</div>
+    <div class="boot-spinner">
+      <span></span><span></span><span></span>
+    </div>
+  </div>
+</div>
+
+<div class="app-content" [class.app-ready]="!isBooting()">
+  <router-outlet></router-outlet>
+</div>
