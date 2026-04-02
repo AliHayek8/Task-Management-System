@@ -1,0 +1,83 @@
+/* ===== App Boot Loader ===== */
+
+.app-boot-loader {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: #f8f7f4;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: fadeIn 0.15s ease;
+}
+
+.boot-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 28px;
+}
+
+.boot-logo {
+  font-size: 28px;
+  font-weight: 600;
+  letter-spacing: -0.5px;
+  color: #1a1a1a;
+  opacity: 0;
+  animation: slideUp 0.3s ease 0.05s forwards;
+}
+
+/* Three dots spinner */
+.boot-spinner {
+  display: flex;
+  gap: 8px;
+  opacity: 0;
+  animation: slideUp 0.3s ease 0.1s forwards;
+}
+
+.boot-spinner span {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #6c63ff;
+  animation: bounce 1.2s ease-in-out infinite;
+}
+
+.boot-spinner span:nth-child(1) { animation-delay: 0s; }
+.boot-spinner span:nth-child(2) { animation-delay: 0.2s; }
+.boot-spinner span:nth-child(3) { animation-delay: 0.4s; }
+
+/* ===== App Content ===== */
+
+.app-content {
+  opacity: 0;
+  visibility: hidden;
+  transition: none;
+}
+
+.app-content.app-ready {
+  opacity: 1;
+  visibility: visible;
+  animation: contentFadeIn 0.2s ease forwards;
+}
+
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes bounce {
+  0%, 60%, 100% { transform: translateY(0); }
+  30%           { transform: translateY(-10px); }
+}
+
+@keyframes contentFadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}

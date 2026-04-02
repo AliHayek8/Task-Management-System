@@ -1,5 +1,5 @@
 import { inject, PLATFORM_ID } from '@angular/core';
-import { CanActivateFn, Router } from '@angular/router';
+import { CanActivateFn, Router, UrlTree } from '@angular/router';
 import { isPlatformBrowser } from '@angular/common';
 
 function isTokenValid(token: string): boolean {
@@ -12,23 +12,21 @@ function isTokenValid(token: string): boolean {
   }
 }
 
-export const authGuard: CanActivateFn = () => {
+export const authGuard: CanActivateFn = (): boolean | UrlTree => {
   const router = inject(Router);
   const platformId = inject(PLATFORM_ID);
 
-  if (isPlatformBrowser(platformId)) {
-    // استخدام sessionStorage بدل localStorage
-    const token = sessionStorage.getItem('token');
-
-    if (token && isTokenValid(token)) {
-      return true;
-    } else {
-      sessionStorage.removeItem('token');
-      sessionStorage.removeItem('user');
-      router.navigate(['/auth']);
-      return false;
-    }
+  if (!isPlatformBrowser(platformId)) {
+    return router.createUrlTree(['/auth']);
   }
 
-  return true;
+  const token = sessionStorage.getItem('token');
+
+  if (token && isTokenValid(token)) {
+    return true;
+  }
+
+  sessionStorage.removeItem('token');
+  sessionStorage.removeItem('user');
+  return router.createUrlTree(['/auth']);
 };
