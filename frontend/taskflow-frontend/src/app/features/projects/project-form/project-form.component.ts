@@ -1,11 +1,12 @@
 import { Component, input, output } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Project } from '../projects-list/projects-list.component';
+import {CommonModule} from '@angular/common';
 
 @Component({
   selector: 'app-project-form',
   standalone: true,
-  imports: [FormsModule],
+  imports: [FormsModule,CommonModule],
   templateUrl: './project-form.html',
   styleUrls: ['./project-form.scss'],
 })
