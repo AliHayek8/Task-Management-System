@@ -15,8 +15,8 @@ import { forkJoin } from 'rxjs';
 export class Dashboard implements OnInit {
 
   projects = signal<any[]>([]);
+
   stats = signal([
-    { title: 'Projects', value: 0, icon: 'fa-folder-open', color: '#4f46e5' },
     { title: 'Done', value: 0, icon: 'fa-circle-check', color: '#10b981' },
     { title: 'In Progress', value: 0, icon: 'fa-spinner', color: '#f59e0b' },
     { title: 'To Do', value: 0, icon: 'fa-list-check', color: '#ef4444' }
@@ -72,7 +72,6 @@ export class Dashboard implements OnInit {
         });
 
         this.projects.set(updatedProjects);
-
         this.updateStatsFromTasks(projects, myTasks);
       },
       error: (err) => console.error(err)
@@ -81,17 +80,10 @@ export class Dashboard implements OnInit {
 
   updateStatsFromTasks(projects: any[], tasks: Task[]) {
     this.stats.set([
-      { title: 'Projects', value: projects.length, icon: 'fa-folder-open', color: '#4f46e5' },
       { title: 'Done', value: tasks.filter(t => t.status==='DONE').length, icon: 'fa-circle-check', color: '#10b981' },
       { title: 'In Progress', value: tasks.filter(t => t.status==='IN_PROGRESS').length, icon: 'fa-spinner', color: '#f59e0b' },
       { title: 'To Do', value: tasks.filter(t => t.status==='TODO').length, icon: 'fa-list-check', color: '#ef4444' }
     ]);
-  }
-
-  getProjectProgress(project: any): number {
-    if (!project.tasks || project.tasks.length === 0) return 0;
-    const done = project.tasks.filter((t: any) => t.status === 'DONE').length;
-    return (done / project.tasks.length) * 100;
   }
 
 }
