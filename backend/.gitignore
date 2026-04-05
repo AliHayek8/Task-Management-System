@@ -38,3 +38,5 @@ backend/src/main/resources/application.properties
 # Ignore all application properties
 **/application.properties
 
+**/.DS_Store
+
