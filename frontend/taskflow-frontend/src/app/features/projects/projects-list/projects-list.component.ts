@@ -1,11 +1,10 @@
-import { Component, OnInit, Inject, PLATFORM_ID, signal } from '@angular/core';
-import {CommonModule, isPlatformBrowser} from '@angular/common';
+import { Component, Inject, OnInit, PLATFORM_ID, signal } from '@angular/core';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { RouterModule } from '@angular/router';
 import { ProjectService } from '../../../core/services/project/project.service';
 import { TaskService, Task } from '../../../core/services/task/task.service';
 import { ProjectFormComponent } from '../project-form/project-form.component';
-
-import { FormsModule } from '@angular/forms';
-import { RouterModule } from '@angular/router';
 
 export interface Project {
   id?: number;

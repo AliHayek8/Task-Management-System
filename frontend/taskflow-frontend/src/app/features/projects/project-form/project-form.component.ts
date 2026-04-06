@@ -1,7 +1,7 @@
 import { Component, input, output } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { Project } from '../projects-list/projects-list.component';
 import {CommonModule} from '@angular/common';
+import { Project } from '../projects-list/projects-list.component';
 
 @Component({
   selector: 'app-project-form',

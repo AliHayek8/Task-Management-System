@@ -1,9 +1,9 @@
 import { Component, OnInit, Inject, PLATFORM_ID, signal } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { RouterModule } from '@angular/router';
+import { forkJoin } from 'rxjs';
 import { ProjectService } from '../../core/services/project/project.service';
 import { TaskService, Task } from '../../core/services/task/task.service';
-import { forkJoin } from 'rxjs';
 
 @Component({
   selector: 'app-dashboard',
