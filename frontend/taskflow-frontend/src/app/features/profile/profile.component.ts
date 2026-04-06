@@ -43,7 +43,6 @@ export class ProfileComponent implements OnInit {
         this.editedName = res.name;
         this.userService.setCurrentUser(res);
       },
-      error: (err) => console.error(err),
     });
   }
 
@@ -60,7 +59,6 @@ export class ProfileComponent implements OnInit {
         this.userService.setCurrentUser(res);
         alert('Profile updated successfully!');
       },
-      error: (err) => console.error(err),
     });
   }
 

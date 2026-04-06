@@ -48,7 +48,6 @@ export class Dashboard implements OnInit {
           }
           this.loadAllTasks(projects);
         },
-        error: (err) => console.error(err)
       });
   }
 
@@ -74,7 +73,6 @@ export class Dashboard implements OnInit {
         this.projects.set(updatedProjects);
         this.updateStatsFromTasks(projects, myTasks);
       },
-      error: (err) => console.error(err)
     });
   }
 

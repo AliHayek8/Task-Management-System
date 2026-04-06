@@ -68,12 +68,10 @@ export class ProjectsListComponent implements OnInit {
                     )
                   );
                 },
-                error: (err) => console.error(err)
               });
             }
           });
         },
-        error: (err) => console.error(err)
       });
   }
 
@@ -108,7 +106,6 @@ export class ProjectsListComponent implements OnInit {
           );
           this.showPopup.set(false);
         },
-        error: (err) => console.error(err)
       });
     } else {
       const newProject = { ...projectToSave, userId: user.id };
@@ -117,7 +114,6 @@ export class ProjectsListComponent implements OnInit {
           this.projects.set([...this.projects(), createdProject]);
           this.showPopup.set(false);
         },
-        error: (err) => console.error(err)
       });
     }
   }
@@ -129,7 +125,6 @@ export class ProjectsListComponent implements OnInit {
       next: () => {
         this.projects.set(this.projects().filter(project => project.id !== projectId));
       },
-      error: (err) => console.error(err)
     });
   }
 }
