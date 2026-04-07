@@ -11,6 +11,7 @@ import { Project } from '../../../core/services/project/project.service';
   styleUrls: ['./project-form.scss'],
 })
 export class ProjectFormComponent {
+
   project = input.required<Project>();
   isNewProject = input.required<boolean>();
 
@@ -18,6 +19,7 @@ export class ProjectFormComponent {
   cancel = output<void>();
 
   descriptionError = false;
+
 
   checkDescription(value: string) {
     this.descriptionError = !!value && value.trim().length < 30;

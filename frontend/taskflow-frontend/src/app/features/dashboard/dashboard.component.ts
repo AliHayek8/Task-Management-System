@@ -30,6 +30,7 @@ export class Dashboard implements OnInit {
     @Inject(PLATFORM_ID) private platformId: Object
   ) {}
 
+
   ngOnInit(): void {
     if (!isPlatformBrowser(this.platformId)) return;
 
@@ -55,7 +56,6 @@ export class Dashboard implements OnInit {
       });
   }
 
-
   loadAllTasks(projects: any[]) {
     this.getTasksRequests(projects)
       .subscribe(results => {
@@ -68,7 +68,6 @@ export class Dashboard implements OnInit {
       });
   }
 
-
   private getTasksRequests(projects: any[]) {
     const requests = projects.map(p =>
       this.taskService.getTasksByProject(p.id)
@@ -76,17 +75,6 @@ export class Dashboard implements OnInit {
 
     return forkJoin(requests);
   }
-
-
-  private flattenTasks(results: Task[][]): Task[] {
-    return results.flat();
-  }
-
-
-  private getMyTasks(tasks: Task[]): Task[] {
-    return tasks.filter(t => t.assigneeEmail === this.user.email);
-  }
-
 
   private attachTasksToProjects(projects: any[], allTasks: Task[]) {
     return projects.map(project => {
@@ -102,10 +90,17 @@ export class Dashboard implements OnInit {
   }
 
 
+  private flattenTasks(results: Task[][]): Task[] {
+    return results.flat();
+  }
+
+  private getMyTasks(tasks: Task[]): Task[] {
+    return tasks.filter(t => t.assigneeEmail === this.user.email);
+  }
+
   private getTasksByProject(tasks: Task[], projectId: number): Task[] {
     return tasks.filter(t => t.projectId === projectId);
   }
-
 
   private countCompletedTasks(tasks: Task[]): number {
     return tasks.filter(t => t.status === 'DONE').length;

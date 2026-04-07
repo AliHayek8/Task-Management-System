@@ -11,6 +11,7 @@ import { UserService, User } from '../../core/services/user/user.service';
   styleUrls: ['./profile.scss'],
 })
 export class ProfileComponent implements OnInit {
+
   user: User = { name: '', email: '' };
   editedName: string = '';
   token: string = '';
@@ -19,6 +20,7 @@ export class ProfileComponent implements OnInit {
     private userService: UserService,
     @Inject(PLATFORM_ID) private platformId: Object
   ) {}
+
 
   ngOnInit() {
     if (!isPlatformBrowser(this.platformId)) return;
@@ -34,6 +36,7 @@ export class ProfileComponent implements OnInit {
     this.fetchUser();
   }
 
+
   fetchUser() {
     if (!this.token) return;
 
@@ -45,6 +48,7 @@ export class ProfileComponent implements OnInit {
       },
     });
   }
+
 
   saveGeneral() {
     if (!this.editedName.trim()) {
@@ -61,6 +65,7 @@ export class ProfileComponent implements OnInit {
       },
     });
   }
+
 
   cancelEdit() {
     this.editedName = this.user.name;
