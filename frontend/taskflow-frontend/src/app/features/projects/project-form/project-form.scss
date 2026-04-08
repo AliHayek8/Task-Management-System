@@ -1,4 +1,4 @@
-/* Popup overlay */
+
 .form-popup {
   position: fixed;
   top: 0;
@@ -12,7 +12,7 @@
   z-index: 1000;
 }
 
-/* Popup box */
+
 .popup-content {
   background: #fff;
   padding: 30px 25px;
@@ -26,14 +26,14 @@
   transition: transform 0.3s ease;
 }
 
-/* Form group */
+
 .form-group {
   display: flex;
   flex-direction: column;
   gap: 6px;
 }
 
-/* Label with star */
+
 .form-label {
   font-weight: 500;
   font-size: 14px;
@@ -47,7 +47,7 @@
   font-weight: bold;
 }
 
-/* Inputs and textarea */
+
 .popup-content input,
 .popup-content textarea {
   padding: 10px 12px;
@@ -66,14 +66,14 @@
   outline: none;
 }
 
-/* Error messages */
+
 .error {
   color: #e53e3e;
   font-size: 12px;
   margin-top: -2px;
 }
 
-/* Buttons container */
+
 .popup-actions {
   display: flex;
   justify-content: flex-end;
@@ -81,7 +81,7 @@
   margin-top: 10px;
 }
 
-/* Buttons style */
+
 .btn-save {
   background-color: #4f46e5;
   color: #fff;

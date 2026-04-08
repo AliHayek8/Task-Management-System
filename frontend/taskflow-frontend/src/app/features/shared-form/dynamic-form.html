@@ -1,0 +1,58 @@
+<form [formGroup]="form()" (ngSubmit)="onSubmit()" class="form-container">
+  @for (field of fields(); track field.name) {
+  <div class="form-group">
+    <label class="form-label">
+      @if (field.required) {
+      <span class="required-star">*</span>
+      }
+      {{ field.label }}
+    </label>
+
+    @if (field.type === 'textarea') {
+    <textarea
+      class="form-input"
+      [formControlName]="field.name"
+    ></textarea>
+    } @else {
+    <input
+      class="form-input"
+      [type]="field.type"
+      [formControlName]="field.name"
+    />
+    }
+
+    @if (form().get(field.name)?.invalid && form().get(field.name)?.touched) {
+    <div class="error">
+      @if (form().get(field.name)?.errors?.['required']) {
+      <small>This field is required</small>
+      }
+      @if (form().get(field.name)?.errors?.['minlength']) {
+      <small>
+        Minimum
+        {{
+        form().get(field.name)?.errors?.['minlength']?.requiredLength
+        }}
+        characters
+      </small>
+      }
+      @if (form().get(field.name)?.errors?.['email']) {
+      <small>Invalid email</small>
+      }
+    </div>
+    }
+  </div>
+  }
+
+  <div class="form-actions">
+    <button
+      type="submit"
+      class="btn-primary"
+      [disabled]="form().invalid"
+    >
+      Save
+    </button>
+    <button type="button" class="btn-secondary" (click)="cancel.emit()">
+      Cancel
+    </button>
+  </div>
+</form>
