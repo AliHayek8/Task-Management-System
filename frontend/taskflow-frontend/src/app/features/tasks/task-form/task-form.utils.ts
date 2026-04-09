@@ -97,12 +97,11 @@ export function validateTaskForm(taskForm: Task): {
     deadline:      validateDeadline(taskForm.deadline),
   };
 
-  let formError = '';
   if (taskForm.status !== 'TODO' && !taskForm.assigneeEmail?.trim()) {
-    formError = VALIDATION_MESSAGES.assigneeEmail.requiredForStatus;
+    fieldErrors.assigneeEmail = VALIDATION_MESSAGES.assigneeEmail.requiredForStatus;
   }
 
-  return { fieldErrors, formError };
+  return { fieldErrors, formError: '' };
 }
 
 /** Returns true when none of the field errors have a message */

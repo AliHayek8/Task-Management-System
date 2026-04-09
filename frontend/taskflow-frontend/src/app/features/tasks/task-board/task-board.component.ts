@@ -29,14 +29,12 @@ import {
 })
 export class TaskBoard implements OnInit {
 
-
   private readonly route          = inject(ActivatedRoute);
   private readonly router         = inject(Router);
   private readonly taskService    = inject(TaskService);
   private readonly projectService = inject(ProjectService);
   private readonly cdr            = inject(ChangeDetectorRef);
   private readonly platformId     = inject(PLATFORM_ID);
-
 
   projectId!: number;
   projectName  = '';
@@ -45,12 +43,10 @@ export class TaskBoard implements OnInit {
   isEditMode   = signal(false);
   selectedTask = signal<Task | null>(null);
   isLoading    = signal(false);
-  globalError  = '';
-
+  globalTaskError  = '';
 
   readonly getPriorityColor = getPriorityColor;
   readonly TASK_STATUSES    = TASK_STATUSES;
-
 
 
   ngOnInit(): void {
@@ -61,7 +57,6 @@ export class TaskBoard implements OnInit {
       this.loadProjectName();
     }
   }
-
 
 
   loadProjectName(): void {
@@ -142,12 +137,13 @@ export class TaskBoard implements OnInit {
       },
       error: (err) => {
         console.error('Failed to delete task:', err);
-        this.globalError = 'Could not delete the task. Please try again.';
-        setTimeout(() => (this.globalError = ''), GLOBAL_ERROR_DISMISS_MS);
+        this.globalTaskError = 'Could not delete the task. Please try again.';
+        setTimeout(() => (this.globalTaskError = ''), GLOBAL_ERROR_DISMISS_MS);
         this.cdr.detectChanges();
       },
     });
   }
+
 
   changeStatus(task: Task, newStatus: string): void {
     if (
@@ -155,8 +151,8 @@ export class TaskBoard implements OnInit {
       newStatus === TASK_STATUSES.IN_PROGRESS &&
       !task.assigneeEmail
     ) {
-      this.globalError = '⚠️ Please assign this task to someone before moving it to In Progress';
-      setTimeout(() => (this.globalError = ''), GLOBAL_ERROR_DISMISS_MS);
+      this.globalTaskError = '⚠️ Please assign this task to someone before moving it to In Progress';
+      setTimeout(() => (this.globalTaskError = ''), GLOBAL_ERROR_DISMISS_MS);
       return;
     }
 
@@ -170,15 +166,13 @@ export class TaskBoard implements OnInit {
       },
       error: (err) => {
         console.error('Failed to update task status:', err);
-        this.globalError = 'Could not update task status. Please try again.';
-        setTimeout(() => (this.globalError = ''), GLOBAL_ERROR_DISMISS_MS);
+        this.globalTaskError = 'Could not update task status. Please try again.';
+        setTimeout(() => (this.globalTaskError = ''), GLOBAL_ERROR_DISMISS_MS);
         this.cdr.detectChanges();
       },
     });
   }
 
-
-  // Private Helpers
 
   private getEmptyTask(): Task {
     return {
