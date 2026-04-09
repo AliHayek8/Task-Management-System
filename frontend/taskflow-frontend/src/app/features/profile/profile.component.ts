@@ -1,5 +1,5 @@
 import { Component, OnInit, Inject, PLATFORM_ID } from '@angular/core';
-import {CommonModule, isPlatformBrowser} from '@angular/common';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { UserService, User } from '../../core/services/user/user.service';
 
@@ -11,6 +11,7 @@ import { UserService, User } from '../../core/services/user/user.service';
   styleUrls: ['./profile.scss'],
 })
 export class ProfileComponent implements OnInit {
+
   user: User = { name: '', email: '' };
   editedName: string = '';
   token: string = '';
@@ -19,6 +20,7 @@ export class ProfileComponent implements OnInit {
     private userService: UserService,
     @Inject(PLATFORM_ID) private platformId: Object
   ) {}
+
 
   ngOnInit() {
     if (!isPlatformBrowser(this.platformId)) return;
@@ -34,6 +36,7 @@ export class ProfileComponent implements OnInit {
     this.fetchUser();
   }
 
+
   fetchUser() {
     if (!this.token) return;
 
@@ -43,9 +46,9 @@ export class ProfileComponent implements OnInit {
         this.editedName = res.name;
         this.userService.setCurrentUser(res);
       },
-      error: (err) => console.error(err),
     });
   }
+
 
   saveGeneral() {
     if (!this.editedName.trim()) {
@@ -60,9 +63,9 @@ export class ProfileComponent implements OnInit {
         this.userService.setCurrentUser(res);
         alert('Profile updated successfully!');
       },
-      error: (err) => console.error(err),
     });
   }
+
 
   cancelEdit() {
     this.editedName = this.user.name;

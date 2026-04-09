@@ -1,9 +1,9 @@
 import { Component, OnInit, Inject, PLATFORM_ID, signal } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { RouterModule } from '@angular/router';
+import { forkJoin } from 'rxjs';
 import { ProjectService } from '../../core/services/project/project.service';
 import { TaskService, Task } from '../../core/services/task/task.service';
-import { forkJoin } from 'rxjs';
 
 @Component({
   selector: 'app-dashboard',
@@ -30,60 +30,102 @@ export class Dashboard implements OnInit {
     @Inject(PLATFORM_ID) private platformId: Object
   ) {}
 
+
   ngOnInit(): void {
     if (!isPlatformBrowser(this.platformId)) return;
 
     this.user = JSON.parse(sessionStorage.getItem('user') || '{}');
-    if (this.user?.id) this.loadProjects(this.user.id);
+    if (this.user?.id) {
+      this.loadProjects(this.user.id);
+    }
   }
+
 
   loadProjects(userId: number) {
     this.projectService.getProjectsByOwner(userId)
       .subscribe({
         next: (projects) => {
-          if (projects.length === 0) {
+          if (!projects.length) {
             this.projects.set([]);
-            this.updateStatsFromTasks([], []);
+            this.updateStatsFromTasks([]);
             return;
           }
+
           this.loadAllTasks(projects);
         },
-        error: (err) => console.error(err)
       });
   }
 
   loadAllTasks(projects: any[]) {
-    const requests = projects.map(p => this.taskService.getTasksByProject(p.id));
-
-    forkJoin(requests).subscribe({
-      next: (results) => {
-        const allTasks: Task[] = results.flat();
-
-        const myTasks = allTasks.filter(t => t.assigneeEmail === this.user.email);
-
-        const updatedProjects = projects.map(project => {
-          const projectTasks = allTasks.filter(t => t.projectId === project.id);
-          return {
-            ...project,
-            tasks: projectTasks,
-            totalTasks: projectTasks.length,
-            tasksCompleted: projectTasks.filter(t => t.status === 'DONE').length
-          };
-        });
+    this.getTasksRequests(projects)
+      .subscribe(results => {
+        const allTasks = this.flattenTasks(results);
+        const myTasks = this.getMyTasks(allTasks);
+        const updatedProjects = this.attachTasksToProjects(projects, allTasks);
 
         this.projects.set(updatedProjects);
-        this.updateStatsFromTasks(projects, myTasks);
-      },
-      error: (err) => console.error(err)
+        this.updateStatsFromTasks(myTasks);
+      });
+  }
+
+  private getTasksRequests(projects: any[]) {
+    const requests = projects.map(p =>
+      this.taskService.getTasksByProject(p.id)
+    );
+
+    return forkJoin(requests);
+  }
+
+  private attachTasksToProjects(projects: any[], allTasks: Task[]) {
+    return projects.map(project => {
+      const projectTasks = this.getTasksByProject(allTasks, project.id);
+
+      return {
+        ...project,
+        tasks: projectTasks,
+        totalTasks: projectTasks.length,
+        tasksCompleted: this.countCompletedTasks(projectTasks)
+      };
     });
   }
 
-  updateStatsFromTasks(projects: any[], tasks: Task[]) {
-    this.stats.set([
-      { title: 'Done', value: tasks.filter(t => t.status==='DONE').length, icon: 'fa-circle-check', color: '#10b981' },
-      { title: 'In Progress', value: tasks.filter(t => t.status==='IN_PROGRESS').length, icon: 'fa-spinner', color: '#f59e0b' },
-      { title: 'To Do', value: tasks.filter(t => t.status==='TODO').length, icon: 'fa-list-check', color: '#ef4444' }
-    ]);
+
+  private flattenTasks(results: Task[][]): Task[] {
+    return results.flat();
   }
 
+  private getMyTasks(tasks: Task[]): Task[] {
+    return tasks.filter(t => t.assigneeEmail === this.user.email);
+  }
+
+  private getTasksByProject(tasks: Task[], projectId: number): Task[] {
+    return tasks.filter(t => t.projectId === projectId);
+  }
+
+  private countCompletedTasks(tasks: Task[]): number {
+    return tasks.filter(t => t.status === 'DONE').length;
+  }
+
+
+  private calculateStats(tasks: Task[]) {
+    let done = 0, inProgress = 0, todo = 0;
+
+    tasks.forEach(t => {
+      if (t.status === 'DONE') done++;
+      else if (t.status === 'IN_PROGRESS') inProgress++;
+      else if (t.status === 'TODO') todo++;
+    });
+
+    return { done, inProgress, todo };
+  }
+
+  updateStatsFromTasks(tasks: Task[]) {
+    const stats = this.calculateStats(tasks);
+
+    this.stats.set([
+      { title: 'Done', value: stats.done, icon: 'fa-circle-check', color: '#10b981' },
+      { title: 'In Progress', value: stats.inProgress, icon: 'fa-spinner', color: '#f59e0b' },
+      { title: 'To Do', value: stats.todo, icon: 'fa-list-check', color: '#ef4444' }
+    ]);
+  }
 }

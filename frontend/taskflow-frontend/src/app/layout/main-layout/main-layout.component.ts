@@ -1,10 +1,9 @@
 import { Component, Inject, PLATFORM_ID } from '@angular/core';
-import { Router } from '@angular/router';
-import { ButtonsModule } from '@progress/kendo-angular-buttons';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
-import { RouterModule } from '@angular/router';
-import { UserService, User } from '../../core/services/user/user.service';
+import { Router, RouterModule } from '@angular/router';
+import { ButtonsModule } from '@progress/kendo-angular-buttons';
 import { Observable } from 'rxjs';
+import { UserService, User } from '../../core/services/user/user.service';
 
 @Component({
   selector: 'app-main-layout',

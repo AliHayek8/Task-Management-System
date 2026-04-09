@@ -1,30 +1,21 @@
-import { Component, OnInit, Inject, PLATFORM_ID, signal } from '@angular/core';
-import {CommonModule, isPlatformBrowser} from '@angular/common';
-import { ProjectService } from '../../../core/services/project/project.service';
-import { TaskService, Task } from '../../../core/services/task/task.service';
-import { ProjectFormComponent } from '../project-form/project-form.component';
-
+import { Component, Inject, OnInit, PLATFORM_ID, signal } from '@angular/core';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
-
-export interface Project {
-  id?: number;
-  name: string;
-  description: string;
-  userId: number;
-  tasksCompleted?: number;
-  totalTasks?: number;
-}
+import { ProjectService, Project } from '../../../core/services/project/project.service';
+import { TaskService, Task } from '../../../core/services/task/task.service';
+import { ProjectFormComponent } from '../project-form/project-form.component';
 
 @Component({
   selector: 'app-projects-list',
   templateUrl: './projects-list.html',
   styleUrls: ['./projects-list.scss'],
   standalone: true,
-  imports: [FormsModule, ProjectFormComponent, RouterModule,CommonModule],
+  imports: [FormsModule, ProjectFormComponent, RouterModule, CommonModule],
 })
 export class ProjectsListComponent implements OnInit {
-  projects = signal<Project[]>([]);
+
+  projects = signal<(Project & { tasksCompleted?: number; totalTasks?: number })[]>([]);
   showPopup = signal(false);
 
   currentProject = signal<Project>({
@@ -41,10 +32,19 @@ export class ProjectsListComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    if (!isPlatformBrowser(this.platformId)) return;
+    if (!this.isBrowser()) return;
 
+    const userId = this.getUserId();
+    if (userId) this.loadProjects(userId);
+  }
+
+  private isBrowser(): boolean {
+    return isPlatformBrowser(this.platformId);
+  }
+
+  private getUserId(): number | null {
     const user = JSON.parse(sessionStorage.getItem('user') || '{}');
-    if (user?.id) this.loadProjects(user.id);
+    return user?.id || null;
   }
 
   loadProjects(ownerId: number) {
@@ -52,30 +52,43 @@ export class ProjectsListComponent implements OnInit {
       .subscribe({
         next: (projectsList) => {
           this.projects.set(projectsList);
-
-          projectsList.forEach(project => {
-            if (project.id) {
-              this.taskService.getTasksByProject(project.id).subscribe({
-                next: (tasksList: Task[]) => {
-                  const updatedProject: Project = {
-                    ...project,
-                    totalTasks: tasksList.length,
-                    tasksCompleted: tasksList.filter(task => task.status === 'DONE').length
-                  };
-
-                  this.projects.set(
-                    this.projects().map(project =>
-                      project.id === updatedProject.id ? updatedProject : project
-                    )
-                  );
-                },
-                error: (err) => console.error(err)
-              });
-            }
-          });
+          this.loadTasksForProjects(projectsList);
         },
-        error: (err) => console.error(err)
       });
+  }
+
+  private loadTasksForProjects(projectsList: Project[]) {
+    projectsList.forEach(project => {
+      if (project.id) {
+        this.fetchAndUpdateProjectTasks(project);
+      }
+    });
+  }
+
+  private fetchAndUpdateProjectTasks(project: Project) {
+    this.taskService.getTasksByProject(project.id!)
+      .subscribe({
+        next: (tasksList: Task[]) => {
+          const updatedProject = this.mapProjectWithTasks(project, tasksList);
+          this.updateProjectInList(updatedProject);
+        },
+      });
+  }
+
+  private mapProjectWithTasks(project: Project, tasks: Task[]) {
+    return {
+      ...project,
+      totalTasks: tasks.length,
+      tasksCompleted: tasks.filter(t => t.status === 'DONE').length
+    };
+  }
+
+  private updateProjectInList(updatedProject: Project & { tasksCompleted?: number; totalTasks?: number }) {
+    this.projects.set(
+      this.projects().map(p =>
+        p.id === updatedProject.id ? updatedProject : p
+      )
+    );
   }
 
   openAddProject() {
@@ -83,7 +96,7 @@ export class ProjectsListComponent implements OnInit {
     this.showPopup.set(true);
   }
 
-  openEditProject(projectToEdit: Project) {
+  openEditProject(projectToEdit: Project & { tasksCompleted?: number; totalTasks?: number }) {
     this.currentProject.set({ ...projectToEdit });
     this.showPopup.set(true);
   }
@@ -92,45 +105,58 @@ export class ProjectsListComponent implements OnInit {
     this.showPopup.set(false);
   }
 
+  private closePopup() {
+    this.showPopup.set(false);
+  }
+
   saveProject() {
-    const user = JSON.parse(sessionStorage.getItem('user') || '{}');
-    if (!user?.id) return;
+    const userId = this.getUserId();
+    if (!userId) return;
 
-    const projectToSave = this.currentProject();
+    const project = this.currentProject();
 
-    if (projectToSave.id) {
-      const { id, ...payload } = projectToSave;
-      this.projectService.updateProject(id, payload).subscribe({
-        next: (updatedProject) => {
-          this.projects.set(
-            this.projects().map(proj =>
-              proj.id === updatedProject.id ? updatedProject : proj
-            )
-          );
-          this.showPopup.set(false);
-        },
-        error: (err) => console.error(err)
-      });
+    if (project.id) {
+      this.updateExistingProject(project as any);
     } else {
-      const newProject = { ...projectToSave, userId: user.id };
-      this.projectService.createProject(newProject).subscribe({
+      this.createNewProject(project as any, userId);
+    }
+  }
+
+  private updateExistingProject(project: Project & { tasksCompleted?: number; totalTasks?: number }) {
+    const { id, tasksCompleted, totalTasks, ...payload } = project;
+
+    this.projectService.updateProject(id!, payload)
+      .subscribe({
+        next: (updatedProject) => {
+          this.updateProjectInList(updatedProject);
+          this.closePopup();
+        },
+      });
+  }
+
+  private createNewProject(project: Project & { tasksCompleted?: number; totalTasks?: number }, userId: number) {
+    const { tasksCompleted, totalTasks, ...payload } = project;
+    const newProject = { ...payload, userId };
+
+    this.projectService.createProject(newProject)
+      .subscribe({
         next: (createdProject) => {
           this.projects.set([...this.projects(), createdProject]);
-          this.showPopup.set(false);
+          this.closePopup();
         },
-        error: (err) => console.error(err)
       });
-    }
   }
 
   deleteProject(projectId: number) {
     if (!confirm('Are you sure you want to delete this project?')) return;
 
-    this.projectService.deleteProject(projectId).subscribe({
-      next: () => {
-        this.projects.set(this.projects().filter(project => project.id !== projectId));
-      },
-      error: (err) => console.error(err)
-    });
+    this.projectService.deleteProject(projectId)
+      .subscribe({
+        next: () => {
+          this.projects.set(
+            this.projects().filter(project => project.id !== projectId)
+          );
+        },
+      });
   }
 }

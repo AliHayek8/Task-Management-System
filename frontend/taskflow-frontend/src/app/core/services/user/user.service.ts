@@ -1,7 +1,8 @@
 import { Injectable, Inject, PLATFORM_ID } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { Observable, BehaviorSubject } from 'rxjs';
 import { isPlatformBrowser } from '@angular/common';
+import { Observable, BehaviorSubject } from 'rxjs';
+
 
 export interface User {
   name: string;
