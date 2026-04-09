@@ -1,17 +1,11 @@
-// ============================================================
-// Task Form Utilities
-// Validation logic, constants, and error messages for TaskFormComponent
-// ============================================================
 
 import { Task } from '../../../core/services/task/task.service';
 
-// ------ Validation Constants ------
 
 export const TITLE_MIN_LENGTH = 3;
 export const DESCRIPTION_MIN_LENGTH = 30;
 export const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-// ------ Validation Error Messages ------
 
 export const VALIDATION_MESSAGES = {
   title: {
@@ -30,7 +24,6 @@ export const VALIDATION_MESSAGES = {
   },
 } as const;
 
-// ------ Field Error Shape ------
 
 export interface TaskFieldErrors {
   title: string;
@@ -39,14 +32,11 @@ export interface TaskFieldErrors {
   deadline: string;
 }
 
-/** Returns a fresh, empty field-errors object */
 export function getEmptyFieldErrors(): TaskFieldErrors {
   return { title: '', description: '', assigneeEmail: '', deadline: '' };
 }
 
-// ------ Individual Field Validators ------
 
-/** Validates the task title and returns an error message or empty string */
 export function validateTitle(title: string): string {
   const trimmed = title.trim();
   if (!trimmed) return VALIDATION_MESSAGES.title.required;
@@ -54,7 +44,6 @@ export function validateTitle(title: string): string {
   return '';
 }
 
-/** Validates the optional description and returns an error message or empty string */
 export function validateDescription(description: string | undefined): string {
   const trimmed = (description ?? '').trim();
   if (!trimmed) return '';
@@ -62,7 +51,6 @@ export function validateDescription(description: string | undefined): string {
   return '';
 }
 
-/** Validates the optional assignee email and returns an error message or empty string */
 export function validateAssigneeEmail(email: string | undefined): string {
   const trimmed = (email ?? '').trim();
   if (!trimmed) return '';
@@ -70,7 +58,6 @@ export function validateAssigneeEmail(email: string | undefined): string {
   return '';
 }
 
-/** Validates the optional deadline and returns an error message or empty string */
 export function validateDeadline(deadline: string | undefined): string {
   if (!deadline) return '';
   const today = new Date();
@@ -80,12 +67,8 @@ export function validateDeadline(deadline: string | undefined): string {
   return '';
 }
 
-// ------ Full Form Validation ------
 
-/**
- * Runs all field validators against the given task form data.
- * Returns the populated field-errors object and a top-level error message (if any).
- */
+
 export function validateTaskForm(taskForm: Task): {
   fieldErrors: TaskFieldErrors;
   formError: string;
@@ -104,7 +87,6 @@ export function validateTaskForm(taskForm: Task): {
   return { fieldErrors, formError: '' };
 }
 
-/** Returns true when none of the field errors have a message */
 export function isFormErrorFree(fieldErrors: TaskFieldErrors, formError: string): boolean {
   return (
     !formError &&

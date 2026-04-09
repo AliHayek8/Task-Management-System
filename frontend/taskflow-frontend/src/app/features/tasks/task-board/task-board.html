@@ -1,6 +1,5 @@
 <div class="board-container">
 
-  <!-- Header -->
   <div class="board-header">
     <div class="header-left">
       <button kendoButton fillMode="flat" class="back-btn" (click)="goBackToProjects()">
@@ -13,20 +12,16 @@
     </div>
   </div>
 
-  <!-- Global Error Banner -->
   <div class="global-error" *ngIf="globalTaskError">
     {{ globalTaskError }}
   </div>
 
-  <!-- Loading Indicator -->
   <div class="loading" *ngIf="isLoading()">
     Loading tasks...
   </div>
 
-  <!-- Kanban Board -->
   <div class="kanban-board" *ngIf="!isLoading()">
 
-    <!-- To Do Column -->
     <div class="kanban-column">
       <div class="column-header">
         <span class="column-dot todo-dot"></span>
@@ -60,7 +55,6 @@
       </div>
     </div>
 
-    <!-- In Progress Column -->
     <div class="kanban-column">
       <div class="column-header">
         <span class="column-dot inprogress-dot"></span>
@@ -93,7 +87,6 @@
       </div>
     </div>
 
-    <!-- Done Column -->
     <div class="kanban-column">
       <div class="column-header">
         <span class="column-dot done-dot"></span>
@@ -129,7 +122,6 @@
 
   </div>
 
-  <!-- Task Form Dialog (rendered by TaskFormComponent) -->
   <app-task-form
     *ngIf="showDialog()"
     [initialTask]="selectedTask()!"
