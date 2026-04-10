@@ -1,19 +1,58 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
 
 <div class="projects-page">
+
+  <!-- Header -->
   <div class="header">
     <div>
       <h2>Projects</h2>
       <span class="subtitle">Manage and track your work</span>
     </div>
-
-    <button class="btn-add-project" (click)="openAddProject()">
-      + New Project
-    </button>
+    <button class="btn-add-project" (click)="openAddProject()">+ New Project</button>
   </div>
 
+  <!-- Search & Filter Bar -->
+  <div class="search-filter-bar">
+    <div class="search-wrapper">
+      <i class="fa-solid fa-magnifying-glass search-icon"></i>
+      <input
+        class="search-input"
+        type="text"
+        placeholder="Search projects..."
+        [value]="searchQuery()"
+        (input)="onSearch($any($event.target).value)"
+      />
+      @if (searchQuery()) {
+      <button class="clear-btn" (click)="onSearch('')">✕</button>
+      }
+    </div>
+
+    <div class="filter-tabs">
+      @for (opt of filterOptions; track opt.value) {
+      <button
+        class="filter-tab"
+        [class.active]="statusFilter() === opt.value"
+        (click)="onFilterChange(opt.value)"
+      >
+        {{ opt.label }}
+      </button>
+      }
+    </div>
+  </div>
+
+  <!-- Results count -->
+  <div class="results-meta">
+    @if (searchQuery() || statusFilter() !== 'ALL') {
+    <span class="results-count">
+        {{ filteredProjects().length }} result{{ filteredProjects().length !== 1 ? 's' : '' }}
+        @if (searchQuery()) { for "<strong>{{ searchQuery() }}</strong>" }
+      </span>
+    }
+  </div>
+
+  <!-- Projects Grid -->
   <div class="projects-grid">
-    @for (projectItem of projects(); track projectItem) {
+    @for (projectItem of filteredProjects(); track projectItem.id) {
     <div class="project-card">
       <div class="card-actions">
         <button class="btn-icon tasks" [routerLink]="['/projects', projectItem.id, 'tasks']">
@@ -37,6 +76,20 @@
       </div>
     </div>
     }
+
+    <!-- Empty state -->
+    @if (filteredProjects().length === 0) {
+    <div class="empty-state">
+      <i class="fa-solid fa-folder-open"></i>
+      <p>
+        @if (searchQuery() || statusFilter() !== 'ALL') {
+        No projects match your search or filter.
+        } @else {
+        No projects yet. Create your first one!
+        }
+      </p>
+    </div>
+    }
   </div>
 
   @if (showPopup()) {
@@ -45,7 +98,7 @@
     [isNewProject]="!currentProject().id"
     (save)="saveProject()"
     (cancel)="cancel()"
-  >
-  </app-project-form>
+  />
   }
+
 </div>
