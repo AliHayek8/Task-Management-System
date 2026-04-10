@@ -1,21 +1,6 @@
-import {
-  Component,
-  Input,
-  Output,
-  EventEmitter,
-  OnInit,
-  OnDestroy,
-  inject,
-} from '@angular/core';
+import {Component,Input,Output,EventEmitter,OnInit,OnDestroy,inject,} from '@angular/core';
 import { CommonModule } from '@angular/common';
-import {
-  ReactiveFormsModule,
-  FormBuilder,
-  FormGroup,
-  Validators,
-  AbstractControl,
-  ValidationErrors,
-} from '@angular/forms';
+import {ReactiveFormsModule,FormBuilder,FormGroup,Validators,AbstractControl,ValidationErrors,} from '@angular/forms';
 import { Subscription } from 'rxjs';
 import { ButtonsModule } from '@progress/kendo-angular-buttons';
 
