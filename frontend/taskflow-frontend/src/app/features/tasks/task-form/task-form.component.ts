@@ -1,39 +1,31 @@
-import {
-  Component,
-  Input,
-  Output,
-  EventEmitter,
-  OnInit,
-  ChangeDetectorRef,
-  inject,
-} from '@angular/core';
+import {Component,Input,Output,EventEmitter,OnInit,OnDestroy,inject,} from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import {ReactiveFormsModule,FormBuilder,FormGroup,Validators,AbstractControl,ValidationErrors,} from '@angular/forms';
+import { Subscription } from 'rxjs';
 import { ButtonsModule } from '@progress/kendo-angular-buttons';
 
 import { TaskService, Task } from '../../../core/services/task/task.service';
-import {
-  TaskFieldErrors,
-  getEmptyFieldErrors,
-  validateTitle,
-  validateDescription,
-  validateAssigneeEmail,
-  validateDeadline,
-  validateTaskForm,
-  isFormErrorFree,
-} from './task-form.utils';
+import { DynamicFormComponent, FormField } from '../../shared-form/dynamic-form.component';
+import { TITLE_MIN_LENGTH, DESCRIPTION_MIN_LENGTH } from './task-form.utils';
+
+function pastDateValidator(control: AbstractControl): ValidationErrors | null {
+  if (!control.value) return null;
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  return new Date(control.value) < today ? { pastDate: true } : null;
+}
 
 @Component({
   selector: 'app-task-form',
   standalone: true,
-  imports: [CommonModule, FormsModule, ButtonsModule],
+  imports: [CommonModule, ReactiveFormsModule, ButtonsModule, DynamicFormComponent],
   templateUrl: './task-form.html',
   styleUrl: './task-form.scss',
 })
-export class TaskFormComponent implements OnInit {
+export class TaskFormComponent implements OnInit, OnDestroy {
 
   private readonly taskService = inject(TaskService);
-  private readonly cdr         = inject(ChangeDetectorRef);
+  private readonly fb          = inject(FormBuilder);
 
   @Input() initialTask!: Task;
   @Input() isEditMode  = false;
@@ -42,93 +34,144 @@ export class TaskFormComponent implements OnInit {
   @Output() taskSaved    = new EventEmitter<Task>();
   @Output() dialogClosed = new EventEmitter<void>();
 
-  taskForm!: Task;
-  fieldErrors: TaskFieldErrors = getEmptyFieldErrors();
+  taskFormGroup!: FormGroup;
   errorMessage = '';
 
+  private statusSub!: Subscription;
+
+  private get currentStatus(): string {
+    return this.taskFormGroup?.get('status')?.value ?? 'TODO';
+  }
+
+  get taskFields(): FormField[] {
+    return [
+      {
+        name: 'title',
+        label: 'Title',
+        type: 'text',
+        required: true,
+        placeholder: `Task title (min ${TITLE_MIN_LENGTH} characters)`,
+      },
+      {
+        name: 'description',
+        label: 'Description',
+        type: 'textarea',
+        placeholder: 'Details...',
+        hint: `(min ${DESCRIPTION_MIN_LENGTH} characters if provided)`,
+      },
+      {
+        name: 'status',
+        label: 'Status',
+        type: 'select',
+        required: true,
+        options: [
+          { value: 'TODO',        label: 'To Do' },
+          { value: 'IN_PROGRESS', label: 'In Progress' },
+          { value: 'DONE',        label: 'Done' },
+        ],
+      },
+      {
+        name: 'priority',
+        label: 'Priority',
+        type: 'select',
+        required: true,
+        options: [
+          { value: 'LOW',    label: 'Low' },
+          { value: 'MEDIUM', label: 'Medium' },
+          { value: 'HIGH',   label: 'High' },
+        ],
+      },
+      {
+        name: 'assigneeEmail',
+        label: 'Assignee Email',
+        type: 'email',
+        placeholder: 'email@example.com',
+        hint: this.currentStatus === 'TODO' ? '(optional for To Do)' : undefined,
+        // Controls the red * in the label — mirrors the actual validator below
+        requiredIf: (form: FormGroup) => form.get('status')?.value !== 'TODO',
+      },
+      {
+        name: 'deadline',
+        label: 'Deadline',
+        type: 'date',
+      },
+    ];
+  }
 
   ngOnInit(): void {
-    // Work on a local copy so the parent's signal is not mutated directly
-    this.taskForm = { ...this.initialTask };
+    this.taskFormGroup = this.fb.group({
+      title:         [this.initialTask.title ?? '',           [Validators.required, Validators.minLength(TITLE_MIN_LENGTH)]],
+      description:   [this.initialTask.description ?? '',    [Validators.minLength(DESCRIPTION_MIN_LENGTH)]],
+      status:        [this.initialTask.status ?? 'TODO',     Validators.required],
+      priority:      [this.initialTask.priority ?? 'MEDIUM', Validators.required],
+      assigneeEmail: [this.initialTask.assigneeEmail ?? '',  [Validators.email]],
+      deadline:      [this.initialTask.deadline ?? '',       [pastDateValidator]],
+    });
+
+    this.updateAssigneeValidators(this.taskFormGroup.get('status')!.value);
+
+    this.statusSub = this.taskFormGroup.get('status')!.valueChanges.subscribe(status => {
+      this.updateAssigneeValidators(status);
+    });
+  }
+
+  ngOnDestroy(): void {
+    this.statusSub?.unsubscribe();
   }
 
 
-
-
-  validateTitle(): void {
-    this.fieldErrors.title = validateTitle(this.taskForm.title);
+  private updateAssigneeValidators(status: string): void {
+    const assigneeControl = this.taskFormGroup.get('assigneeEmail')!;
+    if (status !== 'TODO') {
+      assigneeControl.setValidators([Validators.required, Validators.email]);
+    } else {
+      assigneeControl.setValidators([Validators.email]);
+    }
+    assigneeControl.updateValueAndValidity();
   }
-
-  validateDescription(): void {
-    this.fieldErrors.description = validateDescription(this.taskForm.description);
-  }
-
-  validateAssigneeEmail(): void {
-    this.fieldErrors.assigneeEmail = validateAssigneeEmail(this.taskForm.assigneeEmail);
-  }
-
-  validateDeadline(): void {
-    this.fieldErrors.deadline = validateDeadline(this.taskForm.deadline);
-  }
-
 
   saveTask(): void {
-    const { fieldErrors, formError } = validateTaskForm(this.taskForm);
-    this.fieldErrors  = fieldErrors;
-    this.errorMessage = formError;
+    if (this.taskFormGroup.invalid) {
+      this.taskFormGroup.markAllAsTouched();
+      return;
+    }
 
-    if (!isFormErrorFree(fieldErrors, formError)) return;
+    const formValue = this.taskFormGroup.value as Task;
 
     if (this.isEditMode) {
-      this.taskService.updateTask(this.taskForm.id!, this.taskForm).subscribe({
-        next: (updatedTask) => {
-          this.taskSaved.emit(updatedTask);
-        },
-        error: (err) => {
-          this.handleApiError(err);
-        },
+      this.taskService.updateTask(this.initialTask.id!, formValue).subscribe({
+        next: (updated) => this.taskSaved.emit(updated),
+        error: (err)    => this.handleApiError(err),
       });
     } else {
-      this.taskForm.projectId = this.projectId;
-      this.taskService.createTask(this.taskForm).subscribe({
-        next: (newTask) => {
-          this.taskSaved.emit(newTask);
-        },
-        error: (err) => {
-          this.handleApiError(err);
-        },
+      formValue.projectId = this.projectId;
+      this.taskService.createTask(formValue).subscribe({
+        next: (created) => this.taskSaved.emit(created),
+        error: (err)    => this.handleApiError(err),
       });
     }
   }
-
 
   closeDialog(): void {
     this.dialogClosed.emit();
   }
 
-
-  // Private Helpers
-
   private handleApiError(err: any): void {
-    if (err.status === 400) {
-      const errorPayload = err.error || {};
-      const message      = errorPayload.message || '';
+    const payload = err.error ?? {};
+    const message = payload.message ?? '';
 
+    if (err.status === 400) {
       if (message.includes('Assignee not found')) {
-        this.fieldErrors.assigneeEmail = 'This email is not registered in the system';
-      } else if (errorPayload.description) {
-        this.fieldErrors.description = errorPayload.description;
-      } else if (errorPayload.title) {
-        this.fieldErrors.title = errorPayload.title;
-      } else if (message) {
-        this.errorMessage = message;
+        this.taskFormGroup.get('assigneeEmail')?.setErrors({ serverError: 'This email is not registered in the system' });
+      } else if (payload.description) {
+        this.taskFormGroup.get('description')?.setErrors({ serverError: payload.description });
+      } else if (payload.title) {
+        this.taskFormGroup.get('title')?.setErrors({ serverError: payload.title });
       } else {
-        this.errorMessage = 'Invalid data. Please check your inputs.';
+        this.errorMessage = message || 'Invalid data. Please check your inputs.';
       }
     } else {
       this.errorMessage = 'Something went wrong. Please try again.';
     }
-
-    this.cdr.detectChanges();
   }
 }

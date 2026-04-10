@@ -1,23 +1,39 @@
-<form [formGroup]="form()" (ngSubmit)="onSubmit()" class="form-container">
+<form [formGroup]="form()" class="form-container">
+
   @for (field of fields(); track field.name) {
   <div class="form-group">
+
     <label class="form-label">
-      @if (field.required) {
+      @if (isFieldRequired(field)) {
       <span class="required-star">*</span>
       }
       {{ field.label }}
+      @if (field.hint) {
+      <span class="hint">{{ field.hint }}</span>
+      }
     </label>
 
     @if (field.type === 'textarea') {
     <textarea
       class="form-input"
       [formControlName]="field.name"
+      [placeholder]="field.placeholder ?? ''"
     ></textarea>
+
+    } @else if (field.type === 'select') {
+    <select class="form-input" [formControlName]="field.name">
+      @for (opt of field.options ?? []; track opt.value) {
+      <option [value]="opt.value">{{ opt.label }}</option>
+      }
+    </select>
+
     } @else {
     <input
       class="form-input"
       [type]="field.type"
       [formControlName]="field.name"
+      [placeholder]="field.placeholder ?? ''"
+      (keydown.enter)="field.submitOnEnter ? onSubmit() : null"
     />
     }
 
@@ -28,31 +44,36 @@
       }
       @if (form().get(field.name)?.errors?.['minlength']) {
       <small>
-        Minimum
-        {{
-        form().get(field.name)?.errors?.['minlength']?.requiredLength
-        }}
-        characters
+        Minimum {{ form().get(field.name)?.errors?.['minlength']?.requiredLength }} characters
       </small>
       }
       @if (form().get(field.name)?.errors?.['email']) {
       <small>Invalid email</small>
       }
+      @if (form().get(field.name)?.errors?.['pastDate']) {
+      <small>Deadline cannot be in the past</small>
+      }
+      @if (form().get(field.name)?.errors?.['pattern']) {
+      <small>Invalid format</small>
+      }
+      @if (form().get(field.name)?.errors?.['serverError']) {
+      <small>{{ form().get(field.name)?.errors?.['serverError'] }}</small>
+      }
     </div>
     }
+
   </div>
   }
 
   <div class="form-actions">
-    <button
-      type="submit"
-      class="btn-primary"
-      [disabled]="form().invalid"
-    >
-      Save
+    <button type="button" class="btn-primary" (click)="onSubmit()">
+      {{ submitLabel() }}
     </button>
+    @if (showCancel()) {
     <button type="button" class="btn-secondary" (click)="cancel.emit()">
       Cancel
     </button>
+    }
   </div>
+
 </form>
