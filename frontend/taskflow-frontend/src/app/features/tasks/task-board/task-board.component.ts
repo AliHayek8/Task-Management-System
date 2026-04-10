@@ -30,14 +30,11 @@ export class TaskBoard implements OnInit {
   projectId!: number;
   projectName  = '';
 
-  // --- raw data ---
   tasks = signal<Task[]>([]);
 
-  // --- search & filter state ---
   searchQuery     = signal('');
   priorityFilter  = signal<PriorityFilter>('ALL');
 
-  // --- filtered tasks (computed) ---
   filteredTasks = computed(() => {
     const query    = this.searchQuery().trim().toLowerCase();
     const priority = this.priorityFilter();
@@ -56,7 +53,6 @@ export class TaskBoard implements OnInit {
     });
   });
 
-  // --- filtered tasks split by status column ---
   filteredByStatus = (status: string): Task[] =>
     this.filteredTasks().filter(task => task.status === status);
 

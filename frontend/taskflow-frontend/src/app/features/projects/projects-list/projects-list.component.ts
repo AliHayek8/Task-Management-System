@@ -18,26 +18,21 @@ type StatusFilter = 'ALL' | 'HAS_TASKS' | 'COMPLETED';
 })
 export class ProjectsListComponent implements OnInit {
 
-  // --- raw data ---
   projects = signal<ProjectWithTasks[]>([]);
 
-  // --- search & filter state ---
   searchQuery  = signal('');
   statusFilter = signal<StatusFilter>('ALL');
 
-  // --- filtered results (computed = auto-updates when signals change) ---
   filteredProjects = computed(() => {
     const query  = this.searchQuery().trim().toLowerCase();
     const filter = this.statusFilter();
 
     return this.projects().filter(project => {
-      // Search: match name or description
       const matchesSearch =
         !query ||
         project.name.toLowerCase().includes(query) ||
         (project.description ?? '').toLowerCase().includes(query);
 
-      // Status filter
       const matchesFilter =
         filter === 'ALL' ||
         (filter === 'HAS_TASKS'  && (project.totalTasks ?? 0) > 0) ||
