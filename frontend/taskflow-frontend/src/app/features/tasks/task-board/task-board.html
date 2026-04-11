@@ -1,6 +1,5 @@
 <div class="board-container">
 
-  <!-- Header -->
   <div class="board-header">
     <div class="header-left">
       <button kendoButton fillMode="flat" class="back-btn" (click)="goBackToProjects()">
@@ -13,7 +12,6 @@
     </div>
   </div>
 
-  <!-- Search & Filter Bar -->
   <div class="search-filter-bar">
     <div class="search-wrapper">
       <span class="search-icon">🔍</span>
@@ -42,7 +40,6 @@
     </div>
   </div>
 
-  <!-- Results count -->
   <div class="results-meta">
     @if (searchQuery() || priorityFilter() !== 'ALL') {
     <span class="results-count">
@@ -52,13 +49,10 @@
     }
   </div>
 
-  <!-- Global error -->
   <div class="global-error" *ngIf="globalTaskError">{{ globalTaskError }}</div>
 
-  <!-- Loading -->
   <div class="loading" *ngIf="isLoading()">Loading tasks...</div>
 
-  <!-- Kanban Board -->
   <div class="kanban-board" *ngIf="!isLoading()">
 
     <!-- TO DO -->

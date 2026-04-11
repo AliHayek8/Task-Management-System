@@ -50,11 +50,9 @@ export class TaskBoard implements OnInit {
   globalTaskError = '';
   draggedTask: Task | null = null;
 
-  // --- search & filter state ---
   searchQuery    = signal('');
   priorityFilter = signal<PriorityFilter>('ALL');
 
-  // --- filtered tasks (computed — zero-latency updates) ---
   filteredTasks = computed(() => {
     const query    = this.searchQuery().trim().toLowerCase();
     const priority = this.priorityFilter();
@@ -73,7 +71,6 @@ export class TaskBoard implements OnInit {
     });
   });
 
-  // Replaces getTasksByStatus — works on filteredTasks instead of raw tasks
   filteredByStatus = (status: string): Task[] =>
     this.filteredTasks().filter(task => task.status === status);
 
@@ -181,7 +178,6 @@ export class TaskBoard implements OnInit {
     });
   }
 
-  // ── Drag & Drop ──────────────────────────────────────────
 
   onDragStart(task: Task): void {
     this.draggedTask = task;
