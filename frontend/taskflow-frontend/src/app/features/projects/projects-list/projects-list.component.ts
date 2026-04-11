@@ -35,18 +35,19 @@ export class ProjectsListComponent implements OnInit {
     const query  = this.searchQuery().trim().toLowerCase();
     const filter = this.statusFilter();
 
-    return this.projects().filter(project => {
+    return this.projects().filter(projectItem => {
+
       const matchesSearch =
         !query ||
-        project.name.toLowerCase().includes(query) ||
-        (project.description ?? '').toLowerCase().includes(query);
+        projectItem.name.toLowerCase().includes(query) ||
+        (projectItem.description ?? '').toLowerCase().includes(query);
 
       const matchesFilter =
         filter === 'ALL' ||
-        (filter === 'HAS_TASKS' && (project.totalTasks ?? 0) > 0) ||
+        (filter === 'HAS_TASKS' && (projectItem.totalTasks ?? 0) > 0) ||
         (filter === 'COMPLETED' &&
-          (project.totalTasks ?? 0) > 0 &&
-          project.tasksCompleted === project.totalTasks);
+          (projectItem.totalTasks ?? 0) > 0 &&
+          projectItem.tasksCompleted === projectItem.totalTasks);
 
       return matchesSearch && matchesFilter;
     });
@@ -68,16 +69,22 @@ export class ProjectsListComponent implements OnInit {
 
   ngOnInit(): void {
     if (!isPlatformBrowser(this.platformId)) return;
+
     const userId = this.getUserId();
     if (userId) this.loadProjects(userId);
   }
 
-  onSearch(value: string)       { this.searchQuery.set(value); }
-  onFilterChange(value: string) { this.statusFilter.set(value as StatusFilter); }
+  onSearch(value: string) {
+    this.searchQuery.set(value);
+  }
+
+  onFilterChange(value: string) {
+    this.statusFilter.set(value as StatusFilter);
+  }
 
   private getUserId(): number | null {
-    const user = JSON.parse(sessionStorage.getItem('user') || '{}');
-    return user?.id || null;
+    const storedUser = JSON.parse(sessionStorage.getItem('user') || '{}');
+    return storedUser?.id || null;
   }
 
   loadProjects(ownerId: number) {
@@ -90,21 +97,27 @@ export class ProjectsListComponent implements OnInit {
   }
 
   private loadTasksForProjects(projectsList: Project[]) {
-    projectsList.forEach((project) => {
-      if (project.id) this.fetchAndUpdateProjectTasks(project);
+    projectsList.forEach((projectItem) => {
+      if (projectItem.id) {
+        this.fetchAndUpdateProjectTasks(projectItem);
+      }
     });
   }
 
-  private fetchAndUpdateProjectTasks(project: Project) {
-    this.taskService.getTasksByProject(project.id!).subscribe({
+  private fetchAndUpdateProjectTasks(projectItem: Project) {
+    this.taskService.getTasksByProject(projectItem.id!).subscribe({
       next: (tasksList: Task[]) => {
-        const updatedProject = {
-          ...project,
-          totalTasks:     tasksList.length,
-          tasksCompleted: tasksList.filter((task) => task.status === 'DONE').length,
+
+        const updatedProject: ProjectWithTasks = {
+          ...projectItem,
+          totalTasks: tasksList.length,
+          tasksCompleted: tasksList.filter(task => task.status === 'DONE').length,
         };
+
         this.projects.set(
-          this.projects().map((p) => p.id === updatedProject.id ? updatedProject : p)
+          this.projects().map(existingProject =>
+            existingProject.id === updatedProject.id ? updatedProject : existingProject
+          )
         );
       },
     });
@@ -115,45 +128,62 @@ export class ProjectsListComponent implements OnInit {
     this.showPopup.set(true);
   }
 
-  openEditProject(project: Project) {
-    this.currentProject.set({ ...project });
+  openEditProject(projectItem: Project) {
+    this.currentProject.set({ ...projectItem });
     this.showPopup.set(true);
   }
 
-  cancel() { this.showPopup.set(false); }
+  cancel() {
+    this.showPopup.set(false);
+  }
 
-  saveProject(project: Project) {
+  saveProject(projectData: Project) {
     if (this.isSaving) return;
+
     this.isSaving = true;
 
     const userId = this.getUserId();
-    if (!userId) { this.isSaving = false; return; }
+    if (!userId) {
+      this.isSaving = false;
+      return;
+    }
 
-    const request$ = project.id
-      ? this.projectService.updateProject(project.id, project)
-      : this.projectService.createProject({ ...project, userId });
+    const request$ = projectData.id
+      ? this.projectService.updateProject(projectData.id, projectData)
+      : this.projectService.createProject({ ...projectData, userId });
 
     request$.subscribe({
       next: (responseProject) => {
-        if (project.id) {
+
+        if (projectData.id) {
           this.projects.set(
-            this.projects().map((p) => p.id === responseProject.id ? responseProject : p)
+            this.projects().map(existingProject =>
+              existingProject.id === responseProject.id ? responseProject : existingProject
+            )
           );
         } else {
           this.projects.set([...this.projects(), responseProject]);
         }
+
         this.showPopup.set(false);
         this.isSaving = false;
       },
-      error: () => { this.isSaving = false; },
+      error: () => {
+        this.isSaving = false;
+      },
     });
   }
 
   deleteProject(projectId: number) {
     if (!confirm('Are you sure you want to delete this project?')) return;
+
     this.projectService.deleteProject(projectId).subscribe({
       next: () => {
-        this.projects.set(this.projects().filter((p) => p.id !== projectId));
+        this.projects.set(
+          this.projects().filter(existingProject =>
+            existingProject.id !== projectId
+          )
+        );
       },
     });
   }
