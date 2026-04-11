@@ -1,4 +1,4 @@
-<form [formGroup]="form()" (ngSubmit)="onSubmit()" class="form-container">
+<form [formGroup]="form()" class="form-container">
 
   @for (field of fields(); track field.name) {
   <div class="form-group">
@@ -65,25 +65,21 @@
   </div>
   }
 
-  <div class="extra-content">
-    <ng-content></ng-content>
-  </div>
-
-  <div class="form-actions">
-
-    <button
-      type="submit"
-      class="btn-primary"
-      [disabled]="form().invalid"
-    >
-      {{ submitLabel() }}
-    </button>
-
+  <div class="form-actions" [class.right]="alignment() === 'right'"
+       [class.center]="alignment() === 'center'"
+       [class.left]="alignment() === 'left'">
+    
     @if (showCancel()) {
     <button type="button" class="btn-secondary" (click)="cancel.emit()">
       Cancel
     </button>
     }
+
+    <button type="button" class="btn-primary" (click)="onSubmit()">
+      {{ submitLabel() }}
+    </button>
+
+
 
   </div>
 

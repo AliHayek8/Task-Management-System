@@ -37,12 +37,6 @@
   margin-top: 4px;
 }
 
-.form-actions {
-  display: flex;
-  gap: 10px;
-  margin-top: 12px;
-}
-
 .btn-primary {
   background: #4f6bed;
   color: white;
@@ -78,4 +72,22 @@
   display: flex;
   flex-direction: column;
   gap: 12px;
+}
+
+.form-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.form-actions {
+  justify-content: flex-end;
+}
+
+.form-actions.center {
+  justify-content: center;
+}
+
+.form-actions.left {
+  justify-content: flex-start;
 }

@@ -16,7 +16,7 @@ export interface FormField {
   hint?: string;
   options?: SelectOption[];
   requiredIf?: (form: FormGroup) => boolean;
-  submitOnEnter?: boolean;  // pressing Enter on this field triggers submit
+  submitOnEnter?: boolean;
 }
 
 @Component({
@@ -27,10 +27,12 @@ export interface FormField {
   styleUrls: ['./dynamic-form.scss'],
 })
 export class DynamicFormComponent {
-  form        = input.required<FormGroup>();
-  fields      = input.required<FormField[]>();
+  form = input.required<FormGroup>();
+  fields = input.required<FormField[]>();
   submitLabel = input<string>('Save');
-  showCancel  = input<boolean>(true);
+  showCancel = input<boolean>(true);
+
+  alignment = input<'left' | 'center' | 'right'>('right');
 
   submit = output<void>();
   cancel = output<void>();
