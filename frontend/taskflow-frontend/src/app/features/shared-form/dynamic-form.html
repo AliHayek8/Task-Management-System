@@ -65,15 +65,22 @@
   </div>
   }
 
-  <div class="form-actions">
-    <button type="button" class="btn-primary" (click)="onSubmit()">
-      {{ submitLabel() }}
-    </button>
+  <div class="form-actions" [class.right]="alignment() === 'right'"
+       [class.center]="alignment() === 'center'"
+       [class.left]="alignment() === 'left'">
+    
     @if (showCancel()) {
     <button type="button" class="btn-secondary" (click)="cancel.emit()">
       Cancel
     </button>
     }
+
+    <button type="button" class="btn-primary" (click)="onSubmit()">
+      {{ submitLabel() }}
+    </button>
+
+
+
   </div>
 
 </form>
