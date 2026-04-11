@@ -1,5 +1,6 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
 
+
 <div class="projects-page">
   <div class="header">
     <div>
@@ -7,10 +8,12 @@
       <span class="subtitle">Manage and track your work</span>
     </div>
 
+
     <button class="btn-add-project" (click)="openAddProject()">
       + New Project
     </button>
   </div>
+
 
   <div class="projects-grid">
     @for (projectItem of projects(); track projectItem) {
@@ -31,21 +34,23 @@
         <p class="description">{{ projectItem.description }}</p>
       </div>
       <div class="card-footer">
-          <span class="tasks-badge">
-            {{ projectItem.tasksCompleted || 0 }} / {{ projectItem.totalTasks || 0 }} tasks
-          </span>
+         <span class="tasks-badge">
+           {{ projectItem.tasksCompleted || 0 }} / {{ projectItem.totalTasks || 0 }} tasks
+         </span>
       </div>
     </div>
     }
   </div>
 
-  @if (showPopup()) {
+
+  @if (showPopup()===true) {
   <app-project-form
     [project]="currentProject()"
     [isNewProject]="!currentProject().id"
-    (save)="saveProject()"
+    (save)="saveProject($event)"
     (cancel)="cancel()"
   >
   </app-project-form>
   }
 </div>
+
