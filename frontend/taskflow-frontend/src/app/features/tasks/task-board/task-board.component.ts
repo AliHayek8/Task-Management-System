@@ -32,6 +32,7 @@ export class TaskBoard implements OnInit {
   selectedTask = signal<Task | null>(null);
   isLoading    = signal(false);
   globalTaskError  = '';
+  draggedTask: Task | null = null;
 
   readonly getPriorityColor = getPriorityColor;
   readonly TASK_STATUSES    = TASK_STATUSES;
@@ -161,6 +162,82 @@ export class TaskBoard implements OnInit {
     });
   }
 
+  onDragStart(task: Task): void {
+    this.draggedTask = task;
+  }
+
+  onDragOver(event: DragEvent): void {
+    event.preventDefault();
+  }
+  onDrop(newStatus: string): void {
+    if (!this.draggedTask) return;
+
+    const draggedTask = this.draggedTask;
+
+    if (this.isInvalidStatusChange(draggedTask, newStatus)) {
+      this.showErrorMessage(
+        '⚠️ Please assign this task before moving it to In Progress'
+      );
+
+      this.clearDraggedTask();
+      return;
+    }
+
+    if (this.isSameStatus(draggedTask, newStatus)) {
+      this.clearDraggedTask();
+      return;
+    }
+
+    this.updateTaskStatus(draggedTask, newStatus);
+  }
+
+  private isInvalidStatusChange(task: Task, newStatus: string): boolean {
+    return (
+      task.status === TASK_STATUSES.TODO &&
+      newStatus === TASK_STATUSES.IN_PROGRESS &&
+      !task.assigneeEmail
+    );
+  }
+
+  private isSameStatus(task: Task, newStatus: string): boolean {
+    return task.status === newStatus;
+  }
+
+  private clearDraggedTask(): void {
+    this.draggedTask = null;
+  }
+
+  private showErrorMessage(message: string): void {
+    this.globalTaskError = message;
+
+    setTimeout(() => {
+      this.globalTaskError = '';
+    }, GLOBAL_ERROR_DISMISS_MS);
+  }
+
+  private updateTaskStatus(task: Task, newStatus: string): void {
+    this.taskService.updateTaskStatus(task.id!, newStatus).subscribe({
+      next: (updatedTask) => {
+        this.tasks.set(
+          this.tasks().map(taskItem =>
+            taskItem.id === updatedTask.id ? updatedTask : taskItem
+          )
+        );
+
+        this.clearDraggedTask();
+      },
+      error: (error) => {
+        console.error('Failed to update task status:', error);
+
+        this.showErrorMessage(
+          'Could not update task status. Please try again.'
+        );
+
+        this.clearDraggedTask();
+        this.cdr.detectChanges();
+      },
+    });
+  }
 
   private getEmptyTask(): Task {
     return {
