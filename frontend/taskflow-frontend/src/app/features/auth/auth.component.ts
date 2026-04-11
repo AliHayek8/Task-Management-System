@@ -1,172 +1,106 @@
-import { Component, Inject, PLATFORM_ID, ChangeDetectorRef } from '@angular/core';
-import {CommonModule, isPlatformBrowser} from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import { Component, Inject, PLATFORM_ID, OnInit, ChangeDetectorRef } from '@angular/core';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
+import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 import { AuthService } from '../../core/services/auth/auth.service';
+import { DynamicFormComponent, FormField } from '../shared-form/dynamic-form.component';
 
 @Component({
   selector: 'app-auth',
   standalone: true,
-  imports: [FormsModule, RouterModule,CommonModule],
+  imports: [CommonModule, ReactiveFormsModule, RouterModule, DynamicFormComponent],
   templateUrl: './auth.html',
-  styleUrl: './auth.scss'
+  styleUrl: './auth.scss',
 })
-export class AuthComponent {
+export class AuthComponent implements OnInit {
   isLoginMode = true;
-
-  loginData = { email: '', password: '' };
-  registerData = { name: '', email: '', password: '' };
-
   errorMessage = '';
 
-  loginErrors = {
-    email: '',
-    password: ''
-  };
+  loginForm!: FormGroup;
+  registerForm!: FormGroup;
 
-  registerErrors = {
-    name: '',
-    email: '',
-    password: ''
-  };
+  loginFields: FormField[] = [
+    { name: 'email',    label: 'Email',    type: 'email',    required: true, placeholder: 'Enter your email' },
+    { name: 'password', label: 'Password', type: 'password', required: true, placeholder: 'Enter your password',
+      submitOnEnter: true },
+  ];
+
+  registerFields: FormField[] = [
+    { name: 'name',     label: 'Full Name', type: 'text',     required: true, placeholder: 'Enter your name' },
+    { name: 'email',    label: 'Email',     type: 'email',    required: true, placeholder: 'Enter your email' },
+    { name: 'password', label: 'Password',  type: 'password', required: true, placeholder: 'Enter your password',
+      hint: '(min 6 characters)', submitOnEnter: true },
+  ];
 
   constructor(
+    private fb: FormBuilder,
     private authService: AuthService,
     private router: Router,
     private cdr: ChangeDetectorRef,
-    @Inject(PLATFORM_ID) private platformId: Object
+    @Inject(PLATFORM_ID) private platformId: Object,
   ) {}
+
+  ngOnInit(): void {
+    this.loginForm = this.fb.group({
+      email:    ['', [Validators.required, Validators.email]],
+      password: ['', Validators.required],
+    });
+
+    this.registerForm = this.fb.group({
+      name:     ['', Validators.required],
+      email:    ['', [Validators.required, Validators.email]],
+      password: ['', [Validators.required, Validators.minLength(6)]],
+    });
+  }
 
   toggleMode() {
     this.isLoginMode = !this.isLoginMode;
     this.errorMessage = '';
-    this.registerErrors = { name: '', email: '', password: '' };
-    this.loginErrors = { email: '', password: '' };
+    this.loginForm.reset();
+    this.registerForm.reset();
   }
-
-
-  validateLoginEmail() {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!this.loginData.email) {
-      this.loginErrors.email = 'Email is required';
-    } else if (!emailRegex.test(this.loginData.email)) {
-      this.loginErrors.email = 'Please enter a valid email';
-    } else {
-      this.loginErrors.email = '';
-    }
-  }
-
-  validateLoginPassword() {
-    if (!this.loginData.password) {
-      this.loginErrors.password = 'Password is required';
-    } else {
-      this.loginErrors.password = '';
-    }
-  }
-
-  isLoginFormValid(): boolean {
-    this.validateLoginEmail();
-    this.validateLoginPassword();
-    return !this.loginErrors.email && !this.loginErrors.password;
-  }
-
-
-  validateName() {
-    if (!this.registerData.name.trim()) {
-      this.registerErrors.name = 'Name is required';
-    } else {
-      this.registerErrors.name = '';
-    }
-  }
-
-  validateEmail() {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!this.registerData.email) {
-      this.registerErrors.email = 'Email is required';
-    } else if (!emailRegex.test(this.registerData.email)) {
-      this.registerErrors.email = 'Please enter a valid email (e.g. ali@example.com)';
-    } else {
-      this.registerErrors.email = '';
-    }
-  }
-
-  validatePassword() {
-    if (!this.registerData.password) {
-      this.registerErrors.password = 'Password is required';
-    } else if (this.registerData.password.length < 6) {
-      this.registerErrors.password = 'Password must be at least 6 characters';
-    } else {
-      this.registerErrors.password = '';
-    }
-  }
-
-  isRegisterFormValid(): boolean {
-    return !this.registerErrors.name &&
-           !this.registerErrors.email &&
-           !this.registerErrors.password &&
-           !!this.registerData.name &&
-           !!this.registerData.email &&
-           !!this.registerData.password;
-  }
-
 
   onLogin() {
-    if (!this.isLoginFormValid()) {
-      this.cdr.detectChanges();
-      return;
-    }
+    if (this.loginForm.invalid) return;
 
-    this.authService.login(this.loginData).subscribe({
+    this.authService.login(this.loginForm.value).subscribe({
       next: (response: any) => {
         if (isPlatformBrowser(this.platformId)) {
           sessionStorage.setItem('token', response.token);
           sessionStorage.setItem('user', JSON.stringify({
             id: response.id,
             name: response.name,
-            email: response.email
+            email: response.email,
           }));
         }
         this.router.navigate(['/dashboard']);
       },
-      error: (err: any) => {
+      error: () => {
         this.errorMessage = 'Invalid email or password';
         this.cdr.detectChanges();
-      }
+      },
     });
   }
 
-
   onRegister() {
-    this.validateName();
-    this.validateEmail();
-    this.validatePassword();
+    if (this.registerForm.invalid) return;
 
-    // لا نرسل request إذا فيه أخطاء
-    if (!this.isRegisterFormValid()) {
-      this.cdr.detectChanges();
-      return;
-    }
-
-    this.authService.register(this.registerData).subscribe({
+    this.authService.register(this.registerForm.value).subscribe({
       next: (response: any) => {
         if (isPlatformBrowser(this.platformId)) {
           sessionStorage.setItem('token', response.token);
           sessionStorage.setItem('user', JSON.stringify({
             id: response.id,
             name: response.name,
-            email: response.email
+            email: response.email,
           }));
         }
         this.router.navigate(['/dashboard']);
       },
       error: (err: any) => {
-        if (err.error && err.error.message) {
-          this.errorMessage = err.error.message;
-        } else {
-          this.errorMessage = 'Registration failed. Please try again.';
-        }
+        this.errorMessage = err.error?.message ?? 'Registration failed. Please try again.';
         this.cdr.detectChanges();
-      }
+      },
     });
   }
 }
