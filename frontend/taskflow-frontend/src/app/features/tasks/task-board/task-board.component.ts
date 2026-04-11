@@ -193,16 +193,14 @@ export class TaskBoard implements OnInit {
     this.updateTaskStatus(draggedTask, newStatus);
   }
 
-  // ── Private Helpers ──────────────────────────────────────
 
   private isInvalidStatusChange(task: Task, newStatus: string): boolean {
-    return (
-      task.status === TASK_STATUSES.TODO &&
-      newStatus   === TASK_STATUSES.IN_PROGRESS &&
-      !task.assigneeEmail
-    );
-  }
+    const movingToRestrictedStatus =
+      newStatus === TASK_STATUSES.IN_PROGRESS ||
+      newStatus === TASK_STATUSES.DONE;
 
+    return movingToRestrictedStatus && !task.assigneeEmail;
+  }
   private isSameStatus(task: Task, newStatus: string): boolean {
     return task.status === newStatus;
   }
