@@ -1,4 +1,12 @@
-import {Component,OnInit,signal,computed,PLATFORM_ID,ChangeDetectorRef,inject,} from '@angular/core';
+import {
+  Component,
+  OnInit,
+  signal,
+  computed,
+  PLATFORM_ID,
+  ChangeDetectorRef,
+  inject,
+} from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -7,7 +15,12 @@ import { ButtonsModule } from '@progress/kendo-angular-buttons';
 import { TaskService, Task } from '../../../core/services/task/task.service';
 import { ProjectService } from '../../../core/services/project/project.service';
 import { TaskFormComponent } from '../task-form/task-form.component';
-import {getPriorityColor,getSessionUser,GLOBAL_ERROR_DISMISS_MS,TASK_STATUSES,} from './task-board.utils';
+import {
+  getPriorityColor,
+  getSessionUser,
+  GLOBAL_ERROR_DISMISS_MS,
+  TASK_STATUSES,
+} from './task-board.utils';
 
 type PriorityFilter = 'ALL' | 'LOW' | 'MEDIUM' | 'HIGH';
 
@@ -29,12 +42,19 @@ export class TaskBoard implements OnInit {
 
   projectId!: number;
   projectName  = '';
+  tasks        = signal<Task[]>([]);
+  showDialog   = signal(false);
+  isEditMode   = signal(false);
+  selectedTask = signal<Task | null>(null);
+  isLoading    = signal(false);
+  globalTaskError = '';
+  draggedTask: Task | null = null;
 
-  tasks = signal<Task[]>([]);
+  // --- search & filter state ---
+  searchQuery    = signal('');
+  priorityFilter = signal<PriorityFilter>('ALL');
 
-  searchQuery     = signal('');
-  priorityFilter  = signal<PriorityFilter>('ALL');
-
+  // --- filtered tasks (computed — zero-latency updates) ---
   filteredTasks = computed(() => {
     const query    = this.searchQuery().trim().toLowerCase();
     const priority = this.priorityFilter();
@@ -43,7 +63,7 @@ export class TaskBoard implements OnInit {
       const matchesSearch =
         !query ||
         task.title.toLowerCase().includes(query) ||
-        (task.assigneeName ?? '').toLowerCase().includes(query) ||
+        (task.assigneeName  ?? '').toLowerCase().includes(query) ||
         (task.assigneeEmail ?? '').toLowerCase().includes(query);
 
       const matchesPriority =
@@ -53,17 +73,12 @@ export class TaskBoard implements OnInit {
     });
   });
 
+  // Replaces getTasksByStatus — works on filteredTasks instead of raw tasks
   filteredByStatus = (status: string): Task[] =>
     this.filteredTasks().filter(task => task.status === status);
 
-  showDialog   = signal(false);
-  isEditMode   = signal(false);
-  selectedTask = signal<Task | null>(null);
-  isLoading    = signal(false);
-  globalTaskError = '';
-
-  readonly getPriorityColor  = getPriorityColor;
-  readonly TASK_STATUSES     = TASK_STATUSES;
+  readonly getPriorityColor = getPriorityColor;
+  readonly TASK_STATUSES    = TASK_STATUSES;
 
   readonly priorityOptions: { value: PriorityFilter; label: string }[] = [
     { value: 'ALL',    label: 'All Priorities' },
@@ -90,9 +105,10 @@ export class TaskBoard implements OnInit {
 
     this.projectService.getProjectsByOwner(user.id).subscribe({
       next: (projects) => {
-        const match = projects.find(p => p.id === this.projectId);
-        if (match) this.projectName = match.name;
+        const matchedProject = projects.find(p => p.id === this.projectId);
+        if (matchedProject) this.projectName = matchedProject.name;
       },
+      error: (err) => { console.error('Failed to load project name:', err); },
     });
   }
 
@@ -100,7 +116,7 @@ export class TaskBoard implements OnInit {
     this.isLoading.set(true);
     this.taskService.getTasksByProject(this.projectId).subscribe({
       next: (tasks) => { this.tasks.set(tasks); this.isLoading.set(false); },
-      error: ()      => { this.isLoading.set(false); },
+      error: (err)  => { console.error('Failed to load tasks:', err); this.isLoading.set(false); },
     });
   }
 
@@ -136,33 +152,97 @@ export class TaskBoard implements OnInit {
 
   deleteTask(task: Task): void {
     this.taskService.deleteTask(task.id!).subscribe({
-      next: () => { this.tasks.set(this.tasks().filter(t => t.id !== task.id)); },
-      error: () => {
-        this.globalTaskError = 'Could not delete the task. Please try again.';
-        setTimeout(() => (this.globalTaskError = ''), GLOBAL_ERROR_DISMISS_MS);
+      next: () => {
+        this.tasks.set(this.tasks().filter(t => t.id !== task.id));
+      },
+      error: (err) => {
+        console.error('Failed to delete task:', err);
+        this.showErrorMessage('Could not delete the task. Please try again.');
         this.cdr.detectChanges();
       },
     });
   }
 
   changeStatus(task: Task, newStatus: string): void {
-    if (
-      task.status === TASK_STATUSES.TODO &&
-      newStatus  === TASK_STATUSES.IN_PROGRESS &&
-      !task.assigneeEmail
-    ) {
-      this.globalTaskError = '⚠️ Please assign this task to someone before moving it to In Progress';
-      setTimeout(() => (this.globalTaskError = ''), GLOBAL_ERROR_DISMISS_MS);
+    if (this.isInvalidStatusChange(task, newStatus)) {
+      this.showErrorMessage('⚠️ Please assign this task to someone before moving it to In Progress');
       return;
     }
 
     this.taskService.updateTaskStatus(task.id!, newStatus).subscribe({
-      next: (updated) => {
-        this.tasks.set(this.tasks().map(t => t.id === updated.id ? updated : t));
+      next: (updatedTask) => {
+        this.tasks.set(this.tasks().map(t => t.id === updatedTask.id ? updatedTask : t));
       },
-      error: () => {
-        this.globalTaskError = 'Could not update task status. Please try again.';
-        setTimeout(() => (this.globalTaskError = ''), GLOBAL_ERROR_DISMISS_MS);
+      error: (err) => {
+        console.error('Failed to update task status:', err);
+        this.showErrorMessage('Could not update task status. Please try again.');
+        this.cdr.detectChanges();
+      },
+    });
+  }
+
+  // ── Drag & Drop ──────────────────────────────────────────
+
+  onDragStart(task: Task): void {
+    this.draggedTask = task;
+  }
+
+  onDragOver(event: DragEvent): void {
+    event.preventDefault();
+  }
+
+  onDrop(newStatus: string): void {
+    if (!this.draggedTask) return;
+
+    const draggedTask = this.draggedTask;
+
+    if (this.isInvalidStatusChange(draggedTask, newStatus)) {
+      this.showErrorMessage('⚠️ Please assign this task before moving it to In Progress');
+      this.clearDraggedTask();
+      return;
+    }
+
+    if (this.isSameStatus(draggedTask, newStatus)) {
+      this.clearDraggedTask();
+      return;
+    }
+
+    this.updateTaskStatus(draggedTask, newStatus);
+  }
+
+  // ── Private Helpers ──────────────────────────────────────
+
+  private isInvalidStatusChange(task: Task, newStatus: string): boolean {
+    return (
+      task.status === TASK_STATUSES.TODO &&
+      newStatus   === TASK_STATUSES.IN_PROGRESS &&
+      !task.assigneeEmail
+    );
+  }
+
+  private isSameStatus(task: Task, newStatus: string): boolean {
+    return task.status === newStatus;
+  }
+
+  private clearDraggedTask(): void {
+    this.draggedTask = null;
+  }
+
+  private showErrorMessage(message: string): void {
+    this.globalTaskError = message;
+    setTimeout(() => { this.globalTaskError = ''; }, GLOBAL_ERROR_DISMISS_MS);
+  }
+
+  private updateTaskStatus(task: Task, newStatus: string): void {
+    this.taskService.updateTaskStatus(task.id!, newStatus).subscribe({
+      next: (updatedTask) => {
+        this.tasks.set(this.tasks().map(t => t.id === updatedTask.id ? updatedTask : t));
+        this.clearDraggedTask();
+      },
+      error: (error) => {
+        console.error('Failed to update task status:', error);
+        this.showErrorMessage('Could not update task status. Please try again.');
+        this.clearDraggedTask();
         this.cdr.detectChanges();
       },
     });

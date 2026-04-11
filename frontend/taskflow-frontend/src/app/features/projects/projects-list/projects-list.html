@@ -2,6 +2,7 @@
 
 <div class="projects-page">
 
+  <!-- Header -->
   <div class="header">
     <div>
       <h2>Projects</h2>
@@ -10,6 +11,7 @@
     <button class="btn-add-project" (click)="openAddProject()">+ New Project</button>
   </div>
 
+  <!-- Search & Filter Bar -->
   <div class="search-filter-bar">
     <div class="search-wrapper">
       <i class="fa-solid fa-magnifying-glass search-icon"></i>
@@ -38,6 +40,7 @@
     </div>
   </div>
 
+  <!-- Results count -->
   <div class="results-meta">
     @if (searchQuery() || statusFilter() !== 'ALL') {
     <span class="results-count">
@@ -47,6 +50,7 @@
     }
   </div>
 
+  <!-- Projects Grid -->
   <div class="projects-grid">
     @for (projectItem of filteredProjects(); track projectItem.id) {
     <div class="project-card">
@@ -87,11 +91,11 @@
     }
   </div>
 
-  @if (showPopup()) {
+  @if (showPopup() === true) {
   <app-project-form
     [project]="currentProject()"
     [isNewProject]="!currentProject().id"
-    (save)="saveProject()"
+    (save)="saveProject($any($event))"
     (cancel)="cancel()"
   />
   }
