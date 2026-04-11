@@ -1,6 +1,5 @@
 <div class="board-container">
 
-
   <div class="board-header">
     <div class="header-left">
       <button kendoButton fillMode="flat" class="back-btn" (click)="goBackToProjects()">
@@ -13,38 +12,64 @@
     </div>
   </div>
 
+  <div class="search-filter-bar">
+    <div class="search-wrapper">
+      <span class="search-icon">🔍</span>
+      <input
+        class="search-input"
+        type="text"
+        placeholder="Search tasks by title or assignee..."
+        [value]="searchQuery()"
+        (input)="onSearch($any($event.target).value)"
+      />
+      @if (searchQuery()) {
+      <button class="clear-btn" (click)="onSearch('')">✕</button>
+      }
+    </div>
 
-  <div class="global-error" *ngIf="globalTaskError">
-    {{ globalTaskError }}
+    <div class="filter-tabs">
+      @for (opt of priorityOptions; track opt.value) {
+      <button
+        class="filter-tab"
+        [class.active]="priorityFilter() === opt.value"
+        (click)="onPriorityChange(opt.value)"
+      >
+        {{ opt.label }}
+      </button>
+      }
+    </div>
   </div>
 
-
-  <div class="loading" *ngIf="isLoading()">
-    Loading tasks...
+  <div class="results-meta">
+    @if (searchQuery() || priorityFilter() !== 'ALL') {
+    <span class="results-count">
+        {{ filteredTasks().length }} task{{ filteredTasks().length !== 1 ? 's' : '' }} found
+        @if (searchQuery()) { for "<strong>{{ searchQuery() }}</strong>" }
+      </span>
+    }
   </div>
 
+  <div class="global-error" *ngIf="globalTaskError">{{ globalTaskError }}</div>
+
+  <div class="loading" *ngIf="isLoading()">Loading tasks...</div>
 
   <div class="kanban-board" *ngIf="!isLoading()">
 
-
+    <!-- TO DO -->
     <div class="kanban-column"
          (dragover)="onDragOver($event)"
          (drop)="onDrop(TASK_STATUSES.TODO)">
       <div class="column-header">
         <span class="column-dot todo-dot"></span>
         <span class="column-title">To Do</span>
-        <span class="column-count">{{ getTasksByStatus(TASK_STATUSES.TODO).length }}</span>
+        <span class="column-count">{{ filteredByStatus(TASK_STATUSES.TODO).length }}</span>
         <button kendoButton fillMode="flat" (click)="openAddDialog(TASK_STATUSES.TODO)">+</button>
       </div>
-
-
       <div class="task-list">
         <div class="task-card"
-             *ngFor="let task of getTasksByStatus(TASK_STATUSES.TODO)"
+             *ngFor="let task of filteredByStatus(TASK_STATUSES.TODO)"
              draggable="true"
              (dragstart)="onDragStart(task)">
-
-
           <div class="task-header">
             <span class="task-title">{{ task.title }}</span>
             <div class="task-actions">
@@ -52,53 +77,42 @@
               <button kendoButton fillMode="flat" size="small" (click)="deleteTask(task)">🗑️</button>
             </div>
           </div>
-
-
           <p class="task-description">{{ task.description }}</p>
-
-
           <div class="task-footer">
-           <span class="priority-badge" [style.background-color]="getPriorityColor(task.priority)">
-             {{ task.priority }}
-           </span>
+            <span class="priority-badge" [style.background-color]="getPriorityColor(task.priority)">
+              {{ task.priority }}
+            </span>
             <span class="assignee" *ngIf="task.assigneeName">{{ task.assigneeName }}</span>
           </div>
-
-
           <div class="task-deadline" *ngIf="task.deadline">📅 {{ task.deadline }}</div>
-
-
           <div class="task-status-actions">
             <button kendoButton fillMode="flat" size="small"
                     (click)="changeStatus(task, TASK_STATUSES.IN_PROGRESS)">
               → In Progress
             </button>
           </div>
-
-
         </div>
+        @if (filteredByStatus(TASK_STATUSES.TODO).length === 0 && tasks().length > 0) {
+        <div class="column-empty">No tasks match the current filter</div>
+        }
       </div>
     </div>
 
-
+    <!-- IN PROGRESS -->
     <div class="kanban-column"
          (dragover)="onDragOver($event)"
          (drop)="onDrop(TASK_STATUSES.IN_PROGRESS)">
       <div class="column-header">
         <span class="column-dot inprogress-dot"></span>
         <span class="column-title">In Progress</span>
-        <span class="column-count">{{ getTasksByStatus(TASK_STATUSES.IN_PROGRESS).length }}</span>
+        <span class="column-count">{{ filteredByStatus(TASK_STATUSES.IN_PROGRESS).length }}</span>
         <button kendoButton fillMode="flat" (click)="openAddDialog(TASK_STATUSES.IN_PROGRESS)">+</button>
       </div>
-
-
       <div class="task-list">
         <div class="task-card"
-             *ngFor="let task of getTasksByStatus(TASK_STATUSES.IN_PROGRESS)"
+             *ngFor="let task of filteredByStatus(TASK_STATUSES.IN_PROGRESS)"
              draggable="true"
              (dragstart)="onDragStart(task)">
-
-
           <div class="task-header">
             <span class="task-title">{{ task.title }}</span>
             <div class="task-actions">
@@ -106,57 +120,42 @@
               <button kendoButton fillMode="flat" size="small" (click)="deleteTask(task)">🗑️</button>
             </div>
           </div>
-
-
           <p class="task-description">{{ task.description }}</p>
-
-
           <div class="task-footer">
-           <span class="priority-badge" [style.background-color]="getPriorityColor(task.priority)">
-             {{ task.priority }}
-           </span>
+            <span class="priority-badge" [style.background-color]="getPriorityColor(task.priority)">
+              {{ task.priority }}
+            </span>
             <span class="assignee" *ngIf="task.assigneeName">{{ task.assigneeName }}</span>
           </div>
-
-
           <div class="task-deadline" *ngIf="task.deadline">📅 {{ task.deadline }}</div>
-
-
           <div class="task-status-actions">
             <button kendoButton fillMode="flat" size="small"
-                    (click)="changeStatus(task, TASK_STATUSES.TODO)">
-              ← To Do
-            </button>
+                    (click)="changeStatus(task, TASK_STATUSES.TODO)">← To Do</button>
             <button kendoButton fillMode="flat" size="small"
-                    (click)="changeStatus(task, TASK_STATUSES.DONE)">
-              → Done
-            </button>
+                    (click)="changeStatus(task, TASK_STATUSES.DONE)">→ Done</button>
           </div>
-
-
         </div>
+        @if (filteredByStatus(TASK_STATUSES.IN_PROGRESS).length === 0 && tasks().length > 0) {
+        <div class="column-empty">No tasks match the current filter</div>
+        }
       </div>
     </div>
 
-
+    <!-- DONE -->
     <div class="kanban-column"
          (dragover)="onDragOver($event)"
          (drop)="onDrop(TASK_STATUSES.DONE)">
       <div class="column-header">
         <span class="column-dot done-dot"></span>
         <span class="column-title">Done</span>
-        <span class="column-count">{{ getTasksByStatus(TASK_STATUSES.DONE).length }}</span>
+        <span class="column-count">{{ filteredByStatus(TASK_STATUSES.DONE).length }}</span>
         <button kendoButton fillMode="flat" (click)="openAddDialog(TASK_STATUSES.DONE)">+</button>
       </div>
-
-
       <div class="task-list">
         <div class="task-card"
-             *ngFor="let task of getTasksByStatus(TASK_STATUSES.DONE)"
+             *ngFor="let task of filteredByStatus(TASK_STATUSES.DONE)"
              draggable="true"
              (dragstart)="onDragStart(task)">
-
-
           <div class="task-header">
             <span class="task-title">{{ task.title }}</span>
             <div class="task-actions">
@@ -164,37 +163,28 @@
               <button kendoButton fillMode="flat" size="small" (click)="deleteTask(task)">🗑️</button>
             </div>
           </div>
-
-
           <p class="task-description">{{ task.description }}</p>
-
-
           <div class="task-footer">
-           <span class="priority-badge" [style.background-color]="getPriorityColor(task.priority)">
-             {{ task.priority }}
-           </span>
+            <span class="priority-badge" [style.background-color]="getPriorityColor(task.priority)">
+              {{ task.priority }}
+            </span>
             <span class="assignee" *ngIf="task.assigneeName">{{ task.assigneeName }}</span>
           </div>
-
-
           <div class="task-deadline" *ngIf="task.deadline">📅 {{ task.deadline }}</div>
-
-
           <div class="task-status-actions">
             <button kendoButton fillMode="flat" size="small"
                     (click)="changeStatus(task, TASK_STATUSES.IN_PROGRESS)">
               ← In Progress
             </button>
           </div>
-
-
         </div>
+        @if (filteredByStatus(TASK_STATUSES.DONE).length === 0 && tasks().length > 0) {
+        <div class="column-empty">No tasks match the current filter</div>
+        }
       </div>
     </div>
 
-
   </div>
-
 
   <app-task-form
     *ngIf="showDialog()"
@@ -204,6 +194,5 @@
     (taskSaved)="onTaskSaved($event)"
     (dialogClosed)="closeDialog()"
   ></app-task-form>
-
 
 </div>
