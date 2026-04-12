@@ -1,4 +1,4 @@
-import { Component, OnInit, Inject, PLATFORM_ID, signal } from '@angular/core';
+import {Component, OnInit, PLATFORM_ID, signal, inject} from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { forkJoin } from 'rxjs';
@@ -14,7 +14,12 @@ import { TaskService, Task } from '../../core/services/task/task.service';
 })
 export class Dashboard implements OnInit {
 
+  private readonly projectService = inject(ProjectService);
+  private readonly taskService = inject(TaskService);
+  private readonly platformId = inject(PLATFORM_ID);
+
   projects = signal<any[]>([]);
+  loading = signal(false);
 
   stats = signal([
     { title: 'Done', value: 0, icon: 'fa-circle-check', color: '#10b981' },
@@ -24,74 +29,82 @@ export class Dashboard implements OnInit {
 
   private currentUser: any = null;
 
-  constructor(
-    private projectService: ProjectService,
-    private taskService: TaskService,
-    @Inject(PLATFORM_ID) private platformId: Object
-  ) {}
-
   ngOnInit(): void {
     if (!isPlatformBrowser(this.platformId)) return;
 
     this.currentUser = JSON.parse(sessionStorage.getItem('user') || '{}');
 
-    if (this.currentUser?.id) {
-      this.loadProjects(this.currentUser.id);
+    const userId = this.currentUser?.id;
+    if (userId) {
+      this.loadProjects(userId);
     }
   }
 
-  loadProjects(userId: number) {
-    this.projectService.getProjectsByOwner(userId)
-      .subscribe({
-        next: (projectsList) => {
-          if (!projectsList.length) {
-            this.projects.set([]);
-            this.updateStatsFromTasks([]);
-            return;
-          }
 
-          this.loadAllTasks(projectsList);
-        },
-      });
+  loadProjects(userId: number) {
+    this.loading.set(true);
+
+    this.projectService.getProjectsByOwner(userId).subscribe({
+      next: (projectsList) => {
+
+        if (!projectsList.length) {
+          this.projects.set([]);
+          this.updateStatsFromTasks([]);
+          this.loading.set(false);
+          return;
+        }
+
+        this.loadAllTasks(projectsList);
+      },
+      error: () => {
+        this.loading.set(false);
+      }
+    });
   }
 
   loadAllTasks(projectsList: any[]) {
-    this.getTasksRequests(projectsList)
-      .subscribe(taskResults => {
 
-        const allTasks = this.flattenTasks(taskResults);
-        const assignedTasks = this.getTasksAssignedToCurrentUser(allTasks);
-        const projectsWithTasks = this.attachTasksToProjects(projectsList, allTasks);
-
-        this.projects.set(projectsWithTasks);
-        this.updateStatsFromTasks(assignedTasks);
-      });
-  }
-
-  private getTasksRequests(projectsList: any[]) {
-    const taskRequests = projectsList.map(project =>
+    const requests = projectsList.map(project =>
       this.taskService.getTasksByProject(project.id)
     );
 
-    return forkJoin(taskRequests);
+    forkJoin(requests).subscribe({
+      next: (taskResults) => {
+
+        const allTasks = taskResults.flat();
+
+        const assignedTasks = this.getTasksAssignedToCurrentUser(allTasks);
+
+        const projectsWithTasks = this.attachTasksToProjects(
+          projectsList,
+          allTasks
+        );
+
+        this.projects.set(projectsWithTasks);
+        this.updateStatsFromTasks(assignedTasks);
+
+        this.loading.set(false);
+      },
+      error: () => {
+        this.loading.set(false);
+      }
+    });
   }
 
   private attachTasksToProjects(projectsList: any[], allTasks: Task[]) {
     return projectsList.map(project => {
 
-      const tasksForProject = this.getTasksByProjectId(allTasks, project.id);
+      const tasksForProject = allTasks.filter(
+        task => task.projectId === project.id
+      );
 
       return {
         ...project,
         tasks: tasksForProject,
         totalTasks: tasksForProject.length,
-        tasksCompleted: this.countCompletedTasks(tasksForProject)
+        tasksCompleted: tasksForProject.filter(task => task.status === 'DONE').length
       };
     });
-  }
-
-  private flattenTasks(taskResults: Task[][]): Task[] {
-    return taskResults.flat();
   }
 
   private getTasksAssignedToCurrentUser(allTasks: Task[]): Task[] {
@@ -100,19 +113,8 @@ export class Dashboard implements OnInit {
     );
   }
 
-  private getTasksByProjectId(allTasks: Task[], projectId: number): Task[] {
-    return allTasks.filter(task =>
-      task.projectId === projectId
-    );
-  }
-
-  private countCompletedTasks(tasksList: Task[]): number {
-    return tasksList.filter(task =>
-      task.status === 'DONE'
-    ).length;
-  }
-
   private calculateStats(tasksList: Task[]) {
+
     let doneCount = 0;
     let inProgressCount = 0;
     let todoCount = 0;
@@ -127,6 +129,7 @@ export class Dashboard implements OnInit {
   }
 
   updateStatsFromTasks(tasksList: Task[]) {
+
     const stats = this.calculateStats(tasksList);
 
     this.stats.set([

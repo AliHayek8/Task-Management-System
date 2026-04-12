@@ -1,9 +1,8 @@
-import { Component, input, output } from '@angular/core';
+import { Component, input, output, inject } from '@angular/core';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { Project } from '../../../core/services/project/project.service';
 import { DynamicFormComponent, FormField } from '../../shared-form/dynamic-form.component';
-
 
 @Component({
   selector: 'app-project-form',
@@ -14,26 +13,20 @@ import { DynamicFormComponent, FormField } from '../../shared-form/dynamic-form.
 })
 export class ProjectFormComponent {
 
+  private readonly fb = inject(FormBuilder);
 
   project = input.required<Project>();
   isNewProject = input.required<boolean>();
 
-
   save = output<Project>();
   cancel = output<void>();
 
-
   form!: FormGroup;
-
 
   fields: FormField[] = [
     { name: 'name', label: 'Project Name', type: 'text', required: true },
     { name: 'description', label: 'Description', type: 'textarea' },
   ];
-
-
-  constructor(private fb: FormBuilder) {}
-
 
   ngOnInit() {
     this.form = this.fb.group({
@@ -42,16 +35,11 @@ export class ProjectFormComponent {
     });
   }
 
-
   private submitted = false;
 
-
   onSave() {
-
-
     if (this.submitted) return;
     this.submitted = true;
-
 
     const updatedProject: Project = {
       ...this.project(),
@@ -59,10 +47,7 @@ export class ProjectFormComponent {
       description: this.form.value.description,
     };
 
-
     this.save.emit(updatedProject);
-
-
   }
 
   onCancel() {

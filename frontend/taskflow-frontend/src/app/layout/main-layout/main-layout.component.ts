@@ -1,4 +1,4 @@
-import { Component, Inject, PLATFORM_ID } from '@angular/core';
+import { Component, PLATFORM_ID, inject, OnInit } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { ButtonsModule } from '@progress/kendo-angular-buttons';
@@ -12,9 +12,13 @@ import { UserService, User } from '../../core/services/user/user.service';
   templateUrl: './main-layout.html',
   styleUrls: ['./main-layout.scss'],
 })
-export class MainLayoutComponent {
+export class MainLayoutComponent implements OnInit {
 
-  user$: Observable<User | null>;
+  private readonly router = inject(Router);
+  private readonly userService = inject(UserService);
+  private readonly platformId = inject(PLATFORM_ID);
+
+  user$: Observable<User | null> = this.userService.currentUser$;
 
   items = [
     { text: 'Dashboard', route: '/dashboard' },
@@ -22,15 +26,10 @@ export class MainLayoutComponent {
     { text: 'Profile', route: '/profile' },
   ];
 
-  constructor(
-    private router: Router,
-    private userService: UserService,
-    @Inject(PLATFORM_ID) private platformId: Object
-  ) {
+  ngOnInit(): void {
     if (isPlatformBrowser(this.platformId)) {
       this.userService.loadFromSession();
     }
-    this.user$ = this.userService.currentUser$;
   }
 
   logout() {
