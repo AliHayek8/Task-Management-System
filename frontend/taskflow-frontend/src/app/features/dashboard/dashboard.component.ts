@@ -22,7 +22,7 @@ export class Dashboard implements OnInit {
     { title: 'To Do', value: 0, icon: 'fa-list-check', color: '#ef4444' }
   ]);
 
-  private user: any = null;
+  private currentUser: any = null;
 
   constructor(
     private projectService: ProjectService,
@@ -30,102 +30,109 @@ export class Dashboard implements OnInit {
     @Inject(PLATFORM_ID) private platformId: Object
   ) {}
 
-
   ngOnInit(): void {
     if (!isPlatformBrowser(this.platformId)) return;
 
-    this.user = JSON.parse(sessionStorage.getItem('user') || '{}');
-    if (this.user?.id) {
-      this.loadProjects(this.user.id);
+    this.currentUser = JSON.parse(sessionStorage.getItem('user') || '{}');
+
+    if (this.currentUser?.id) {
+      this.loadProjects(this.currentUser.id);
     }
   }
-
 
   loadProjects(userId: number) {
     this.projectService.getProjectsByOwner(userId)
       .subscribe({
-        next: (projects) => {
-          if (!projects.length) {
+        next: (projectsList) => {
+          if (!projectsList.length) {
             this.projects.set([]);
             this.updateStatsFromTasks([]);
             return;
           }
 
-          this.loadAllTasks(projects);
+          this.loadAllTasks(projectsList);
         },
       });
   }
 
-  loadAllTasks(projects: any[]) {
-    this.getTasksRequests(projects)
-      .subscribe(results => {
-        const allTasks = this.flattenTasks(results);
-        const myTasks = this.getMyTasks(allTasks);
-        const updatedProjects = this.attachTasksToProjects(projects, allTasks);
+  loadAllTasks(projectsList: any[]) {
+    this.getTasksRequests(projectsList)
+      .subscribe(taskResults => {
 
-        this.projects.set(updatedProjects);
-        this.updateStatsFromTasks(myTasks);
+        const allTasks = this.flattenTasks(taskResults);
+        const assignedTasks = this.getTasksAssignedToCurrentUser(allTasks);
+        const projectsWithTasks = this.attachTasksToProjects(projectsList, allTasks);
+
+        this.projects.set(projectsWithTasks);
+        this.updateStatsFromTasks(assignedTasks);
       });
   }
 
-  private getTasksRequests(projects: any[]) {
-    const requests = projects.map(p =>
-      this.taskService.getTasksByProject(p.id)
+  private getTasksRequests(projectsList: any[]) {
+    const taskRequests = projectsList.map(project =>
+      this.taskService.getTasksByProject(project.id)
     );
 
-    return forkJoin(requests);
+    return forkJoin(taskRequests);
   }
 
-  private attachTasksToProjects(projects: any[], allTasks: Task[]) {
-    return projects.map(project => {
-      const projectTasks = this.getTasksByProject(allTasks, project.id);
+  private attachTasksToProjects(projectsList: any[], allTasks: Task[]) {
+    return projectsList.map(project => {
+
+      const tasksForProject = this.getTasksByProjectId(allTasks, project.id);
 
       return {
         ...project,
-        tasks: projectTasks,
-        totalTasks: projectTasks.length,
-        tasksCompleted: this.countCompletedTasks(projectTasks)
+        tasks: tasksForProject,
+        totalTasks: tasksForProject.length,
+        tasksCompleted: this.countCompletedTasks(tasksForProject)
       };
     });
   }
 
-
-  private flattenTasks(results: Task[][]): Task[] {
-    return results.flat();
+  private flattenTasks(taskResults: Task[][]): Task[] {
+    return taskResults.flat();
   }
 
-  private getMyTasks(tasks: Task[]): Task[] {
-    return tasks.filter(t => t.assigneeEmail === this.user.email);
+  private getTasksAssignedToCurrentUser(allTasks: Task[]): Task[] {
+    return allTasks.filter(task =>
+      task.assigneeEmail === this.currentUser.email
+    );
   }
 
-  private getTasksByProject(tasks: Task[], projectId: number): Task[] {
-    return tasks.filter(t => t.projectId === projectId);
+  private getTasksByProjectId(allTasks: Task[], projectId: number): Task[] {
+    return allTasks.filter(task =>
+      task.projectId === projectId
+    );
   }
 
-  private countCompletedTasks(tasks: Task[]): number {
-    return tasks.filter(t => t.status === 'DONE').length;
+  private countCompletedTasks(tasksList: Task[]): number {
+    return tasksList.filter(task =>
+      task.status === 'DONE'
+    ).length;
   }
 
+  private calculateStats(tasksList: Task[]) {
+    let doneCount = 0;
+    let inProgressCount = 0;
+    let todoCount = 0;
 
-  private calculateStats(tasks: Task[]) {
-    let done = 0, inProgress = 0, todo = 0;
-
-    tasks.forEach(t => {
-      if (t.status === 'DONE') done++;
-      else if (t.status === 'IN_PROGRESS') inProgress++;
-      else if (t.status === 'TODO') todo++;
+    tasksList.forEach(task => {
+      if (task.status === 'DONE') doneCount++;
+      else if (task.status === 'IN_PROGRESS') inProgressCount++;
+      else if (task.status === 'TODO') todoCount++;
     });
 
-    return { done, inProgress, todo };
+    return { doneCount, inProgressCount, todoCount };
   }
 
-  updateStatsFromTasks(tasks: Task[]) {
-    const stats = this.calculateStats(tasks);
+  updateStatsFromTasks(tasksList: Task[]) {
+    const stats = this.calculateStats(tasksList);
 
     this.stats.set([
-      { title: 'Done', value: stats.done, icon: 'fa-circle-check', color: '#10b981' },
-      { title: 'In Progress', value: stats.inProgress, icon: 'fa-spinner', color: '#f59e0b' },
-      { title: 'To Do', value: stats.todo, icon: 'fa-list-check', color: '#ef4444' }
+      { title: 'Done', value: stats.doneCount, icon: 'fa-circle-check', color: '#10b981' },
+      { title: 'In Progress', value: stats.inProgressCount, icon: 'fa-spinner', color: '#f59e0b' },
+      { title: 'To Do', value: stats.todoCount, icon: 'fa-list-check', color: '#ef4444' }
     ]);
   }
 }
