@@ -1,13 +1,12 @@
-import {Component,OnInit,signal,computed,PLATFORM_ID,ChangeDetectorRef,inject,} from '@angular/core';
+import {Component, OnInit, signal, computed, PLATFORM_ID, ChangeDetectorRef, inject,} from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ButtonsModule } from '@progress/kendo-angular-buttons';
-
 import { TaskService, Task } from '../../../core/services/task/task.service';
 import { ProjectService } from '../../../core/services/project/project.service';
 import { TaskFormComponent } from '../task-form/task-form.component';
-import {getPriorityColor,getSessionUser,GLOBAL_ERROR_DISMISS_MS,TASK_STATUSES,} from './task-board.utils';
+import {getPriorityColor, getSessionUser, GLOBAL_ERROR_DISMISS_MS, TASK_STATUSES,} from './task-board.utils';
 
 type PriorityFilter = 'ALL' | 'LOW' | 'MEDIUM' | 'HIGH';
 
@@ -20,59 +19,63 @@ type PriorityFilter = 'ALL' | 'LOW' | 'MEDIUM' | 'HIGH';
 })
 export class TaskBoard implements OnInit {
 
-  private readonly route          = inject(ActivatedRoute);
-  private readonly router         = inject(Router);
-  private readonly taskService    = inject(TaskService);
+  private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
+  private readonly taskService = inject(TaskService);
   private readonly projectService = inject(ProjectService);
-  private readonly cdr            = inject(ChangeDetectorRef);
-  private readonly platformId     = inject(PLATFORM_ID);
+  private readonly changeDetector = inject(ChangeDetectorRef);
+  private readonly platformId = inject(PLATFORM_ID);
 
   projectId!: number;
-  projectName  = '';
-  tasks        = signal<Task[]>([]);
-  showDialog   = signal(false);
-  isEditMode   = signal(false);
+  projectName = '';
+
+  tasks = signal<Task[]>([]);
+  showDialog = signal(false);
+  isEditMode = signal(false);
   selectedTask = signal<Task | null>(null);
-  isLoading    = signal(false);
+  isLoading = signal(false);
+
   globalTaskError = '';
   draggedTask: Task | null = null;
 
-  searchQuery    = signal('');
+  searchQuery = signal('');
   priorityFilter = signal<PriorityFilter>('ALL');
 
   filteredTasks = computed(() => {
-    const query    = this.searchQuery().trim().toLowerCase();
+    const query = this.searchQuery().trim().toLowerCase();
     const priority = this.priorityFilter();
 
-    return this.tasks().filter(task => {
+    return this.tasks().filter(taskItem => {
+
       const matchesSearch =
         !query ||
-        task.title.toLowerCase().includes(query) ||
-        (task.assigneeName  ?? '').toLowerCase().includes(query) ||
-        (task.assigneeEmail ?? '').toLowerCase().includes(query);
+        taskItem.title.toLowerCase().includes(query) ||
+        (taskItem.assigneeName ?? '').toLowerCase().includes(query) ||
+        (taskItem.assigneeEmail ?? '').toLowerCase().includes(query);
 
       const matchesPriority =
-        priority === 'ALL' || task.priority === priority;
+        priority === 'ALL' || taskItem.priority === priority;
 
       return matchesSearch && matchesPriority;
     });
   });
 
   filteredByStatus = (status: string): Task[] =>
-    this.filteredTasks().filter(task => task.status === status);
+    this.filteredTasks().filter(taskItem => taskItem.status === status);
 
   readonly getPriorityColor = getPriorityColor;
-  readonly TASK_STATUSES    = TASK_STATUSES;
+  readonly TASK_STATUSES = TASK_STATUSES;
 
   readonly priorityOptions: { value: PriorityFilter; label: string }[] = [
-    { value: 'ALL',    label: 'All Priorities' },
-    { value: 'HIGH',   label: '🔴 High'        },
-    { value: 'MEDIUM', label: '🟠 Medium'      },
-    { value: 'LOW',    label: '🟢 Low'         },
+    { value: 'ALL', label: 'All Priorities' },
+    { value: 'HIGH', label: '🔴 High' },
+    { value: 'MEDIUM', label: '🟠 Medium' },
+    { value: 'LOW', label: '🟢 Low' },
   ];
 
   ngOnInit(): void {
-    this.projectId = Number(this.route.snapshot.paramMap.get('projectId')) || 1;
+    this.projectId =
+      Number(this.route.snapshot.paramMap.get('projectId')) || 1;
 
     if (isPlatformBrowser(this.platformId)) {
       this.loadTasks();
@@ -80,27 +83,48 @@ export class TaskBoard implements OnInit {
     }
   }
 
-  onSearch(value: string)         { this.searchQuery.set(value); }
-  onPriorityChange(value: string) { this.priorityFilter.set(value as PriorityFilter); }
+  onSearch(value: string) {
+    this.searchQuery.set(value);
+  }
+
+  onPriorityChange(value: string) {
+    this.priorityFilter.set(value as PriorityFilter);
+  }
 
   loadProjectName(): void {
-    const user = getSessionUser();
-    if (!user?.id) return;
+    const sessionUser = getSessionUser();
 
-    this.projectService.getProjectsByOwner(user.id).subscribe({
-      next: (projects) => {
-        const matchedProject = projects.find(p => p.id === this.projectId);
-        if (matchedProject) this.projectName = matchedProject.name;
+    if (!sessionUser?.id) return;
+
+    this.projectService.getProjectsByOwner(sessionUser.id).subscribe({
+      next: (projectsList) => {
+
+        const matchedProject = projectsList.find(
+          projectItem => projectItem.id === this.projectId
+        );
+
+        if (matchedProject) {
+          this.projectName = matchedProject.name;
+        }
       },
-      error: (err) => { console.error('Failed to load project name:', err); },
+      error: (error) => {
+        console.error('Failed to load project name:', error);
+      },
     });
   }
 
   loadTasks(): void {
     this.isLoading.set(true);
+
     this.taskService.getTasksByProject(this.projectId).subscribe({
-      next: (tasks) => { this.tasks.set(tasks); this.isLoading.set(false); },
-      error: (err)  => { console.error('Failed to load tasks:', err); this.isLoading.set(false); },
+      next: (tasksList) => {
+        this.tasks.set(tasksList);
+        this.isLoading.set(false);
+      },
+      error: (error) => {
+        console.error('Failed to load tasks:', error);
+        this.isLoading.set(false);
+      },
     });
   }
 
@@ -110,13 +134,18 @@ export class TaskBoard implements OnInit {
 
   openAddDialog(status: string = TASK_STATUSES.TODO): void {
     this.isEditMode.set(false);
-    this.selectedTask.set({ ...this.getEmptyTask(), status: status as Task['status'] });
+
+    this.selectedTask.set({
+      ...this.getEmptyTask(),
+      status: status as Task['status'],
+    });
+
     this.showDialog.set(true);
   }
 
-  openEditDialog(task: Task): void {
+  openEditDialog(taskItem: Task): void {
     this.isEditMode.set(true);
-    this.selectedTask.set({ ...task });
+    this.selectedTask.set({ ...taskItem });
     this.showDialog.set(true);
   }
 
@@ -127,47 +156,61 @@ export class TaskBoard implements OnInit {
 
   onTaskSaved(savedTask: Task): void {
     if (this.isEditMode()) {
-      this.tasks.set(this.tasks().map(t => t.id === savedTask.id ? savedTask : t));
+      this.tasks.set(
+        this.tasks().map(existingTask =>
+          existingTask.id === savedTask.id ? savedTask : existingTask
+        )
+      );
     } else {
       this.tasks.set([...this.tasks(), savedTask]);
     }
+
     this.closeDialog();
   }
 
-  deleteTask(task: Task): void {
-    this.taskService.deleteTask(task.id!).subscribe({
+  deleteTask(taskItem: Task): void {
+    this.taskService.deleteTask(taskItem.id!).subscribe({
       next: () => {
-        this.tasks.set(this.tasks().filter(t => t.id !== task.id));
+        this.tasks.set(
+          this.tasks().filter(existingTask =>
+            existingTask.id !== taskItem.id
+          )
+        );
       },
-      error: (err) => {
-        console.error('Failed to delete task:', err);
+      error: (error) => {
+        console.error('Failed to delete task:', error);
         this.showErrorMessage('Could not delete the task. Please try again.');
-        this.cdr.detectChanges();
+        this.changeDetector.detectChanges();
       },
     });
   }
 
-  changeStatus(task: Task, newStatus: string): void {
-    if (this.isInvalidStatusChange(task, newStatus)) {
-      this.showErrorMessage('⚠️ Please assign this task to someone before moving it to In Progress');
+  changeStatus(taskItem: Task, newStatus: string): void {
+    if (this.isInvalidStatusChange(taskItem, newStatus)) {
+      this.showErrorMessage(
+        '⚠️ Please assign this task to someone before moving it to In Progress'
+      );
       return;
     }
 
-    this.taskService.updateTaskStatus(task.id!, newStatus).subscribe({
+    this.taskService.updateTaskStatus(taskItem.id!, newStatus).subscribe({
       next: (updatedTask) => {
-        this.tasks.set(this.tasks().map(t => t.id === updatedTask.id ? updatedTask : t));
+        this.tasks.set(
+          this.tasks().map(existingTask =>
+            existingTask.id === updatedTask.id ? updatedTask : existingTask
+          )
+        );
       },
-      error: (err) => {
-        console.error('Failed to update task status:', err);
+      error: (error) => {
+        console.error('Failed to update task status:', error);
         this.showErrorMessage('Could not update task status. Please try again.');
-        this.cdr.detectChanges();
+        this.changeDetector.detectChanges();
       },
     });
   }
 
-
-  onDragStart(task: Task): void {
-    this.draggedTask = task;
+  onDragStart(taskItem: Task): void {
+    this.draggedTask = taskItem;
   }
 
   onDragOver(event: DragEvent): void {
@@ -177,34 +220,34 @@ export class TaskBoard implements OnInit {
   onDrop(newStatus: string): void {
     if (!this.draggedTask) return;
 
-    const draggedTask = this.draggedTask;
+    const draggedTaskItem = this.draggedTask;
 
-    if (this.isInvalidStatusChange(draggedTask, newStatus)) {
-      this.showErrorMessage('⚠️ Please assign this task before moving it to In Progress');
+    if (this.isInvalidStatusChange(draggedTaskItem, newStatus)) {
+      this.showErrorMessage(
+        '⚠️ Please assign this task before moving it to In Progress'
+      );
       this.clearDraggedTask();
       return;
     }
 
-    if (this.isSameStatus(draggedTask, newStatus)) {
+    if (this.isSameStatus(draggedTaskItem, newStatus)) {
       this.clearDraggedTask();
       return;
     }
 
-    this.updateTaskStatus(draggedTask, newStatus);
+    this.updateTaskStatus(draggedTaskItem, newStatus);
   }
 
-  // ── Private Helpers ──────────────────────────────────────
+  private isInvalidStatusChange(taskItem: Task, newStatus: string): boolean {
+    const isRestrictedStatus =
+      newStatus === TASK_STATUSES.IN_PROGRESS ||
+      newStatus === TASK_STATUSES.DONE;
 
-  private isInvalidStatusChange(task: Task, newStatus: string): boolean {
-    return (
-      task.status === TASK_STATUSES.TODO &&
-      newStatus   === TASK_STATUSES.IN_PROGRESS &&
-      !task.assigneeEmail
-    );
+    return isRestrictedStatus && !taskItem.assigneeEmail;
   }
 
-  private isSameStatus(task: Task, newStatus: string): boolean {
-    return task.status === newStatus;
+  private isSameStatus(taskItem: Task, newStatus: string): boolean {
+    return taskItem.status === newStatus;
   }
 
   private clearDraggedTask(): void {
@@ -213,20 +256,28 @@ export class TaskBoard implements OnInit {
 
   private showErrorMessage(message: string): void {
     this.globalTaskError = message;
-    setTimeout(() => { this.globalTaskError = ''; }, GLOBAL_ERROR_DISMISS_MS);
+
+    setTimeout(() => {
+      this.globalTaskError = '';
+    }, GLOBAL_ERROR_DISMISS_MS);
   }
 
-  private updateTaskStatus(task: Task, newStatus: string): void {
-    this.taskService.updateTaskStatus(task.id!, newStatus).subscribe({
+  private updateTaskStatus(taskItem: Task, newStatus: string): void {
+    this.taskService.updateTaskStatus(taskItem.id!, newStatus).subscribe({
       next: (updatedTask) => {
-        this.tasks.set(this.tasks().map(t => t.id === updatedTask.id ? updatedTask : t));
+        this.tasks.set(
+          this.tasks().map(existingTask =>
+            existingTask.id === updatedTask.id ? updatedTask : existingTask
+          )
+        );
+
         this.clearDraggedTask();
       },
       error: (error) => {
         console.error('Failed to update task status:', error);
         this.showErrorMessage('Could not update task status. Please try again.');
         this.clearDraggedTask();
-        this.cdr.detectChanges();
+        this.changeDetector.detectChanges();
       },
     });
   }
