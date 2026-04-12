@@ -1,19 +1,19 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { ProjectFormComponent } from './project-form.component';
 import { ReactiveFormsModule } from '@angular/forms';
-import { signal, InputSignal } from '@angular/core';
-import { Project } from '../../../core/services/project/project.service';
+import { signal } from '@angular/core';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { Project } from '../../../core/services/project/project.service';
+import { ProjectFormComponent } from './project-form.component';
 
-describe('ProjectFormComponent', () => {
+describe('ProjectFormComponent (Business Tests)', () => {
   let component: ProjectFormComponent;
   let fixture: ComponentFixture<ProjectFormComponent>;
 
   const projectSignal = signal<Project>({
-    userId: 0,
-    id: 0,
+    userId: 1,
+    id: 1,
     name: '',
-    description: ''
+    description: '',
   });
 
   const isNewSignal = signal(true);
@@ -26,31 +26,58 @@ describe('ProjectFormComponent', () => {
     fixture = TestBed.createComponent(ProjectFormComponent);
     component = fixture.componentInstance;
 
-    component.project = projectSignal as unknown as InputSignal<Project>;
-    component.isNewProject = isNewSignal as unknown as InputSignal<boolean>;
+    component.project = projectSignal as any;
+    component.isNewProject = isNewSignal as any;
 
     fixture.detectChanges();
   });
 
-  it('should create', () => {
+  it('should create component', () => {
     expect(component).toBeTruthy();
   });
 
-  it('should initialize form', () => {
+
+  it('should initialize form with empty values', () => {
     expect(component.form).toBeDefined();
 
     expect(component.form.value).toEqual({
       name: '',
-      description: ''
+      description: '',
     });
   });
 
-  it('should emit save with project data', () => {
+  it('should require project name minLength 3', () => {
+    const name = component.form.get('name');
+
+    name?.setValue('');
+    expect(name?.valid).toBe(false);
+
+    name?.setValue('ab');
+    expect(name?.valid).toBe(false);
+
+    name?.setValue('abc');
+    expect(name?.valid).toBe(true);
+  });
+
+  it('should validate description minLength 30', () => {
+    const desc = component.form.get('description');
+
+    desc?.setValue('short');
+    expect(desc?.valid).toBe(false);
+
+    desc?.setValue('a'.repeat(29));
+    expect(desc?.valid).toBe(false);
+
+    desc?.setValue('a'.repeat(30));
+    expect(desc?.valid).toBe(true);
+  });
+
+  it('should emit save with valid project data', () => {
     const saveSpy = vi.spyOn(component.save, 'emit');
 
     component.form.setValue({
       name: 'Test Project',
-      description: 'Test description here'
+      description: 'a'.repeat(30),
     });
 
     component.onSave();
@@ -58,17 +85,30 @@ describe('ProjectFormComponent', () => {
     expect(saveSpy).toHaveBeenCalledWith(
       expect.objectContaining({
         name: 'Test Project',
-        description: 'Test description here'
+        description: 'a'.repeat(30),
       })
     );
+  });
+
+  it('should NOT emit save if form is invalid', () => {
+    const saveSpy = vi.spyOn(component.save, 'emit');
+
+    component.form.setValue({
+      name: '',
+      description: '',
+    });
+
+    component.onSave();
+
+    expect(saveSpy).not.toHaveBeenCalled();
   });
 
   it('should prevent double submit', () => {
     const saveSpy = vi.spyOn(component.save, 'emit');
 
     component.form.setValue({
-      name: 'Test',
-      description: 'Test description'
+      name: 'Project A',
+      description: 'a'.repeat(30),
     });
 
     component.onSave();
@@ -77,11 +117,27 @@ describe('ProjectFormComponent', () => {
     expect(saveSpy).toHaveBeenCalledTimes(1);
   });
 
-  it('should emit cancel', () => {
+  it('should emit cancel event', () => {
     const cancelSpy = vi.spyOn(component.cancel, 'emit');
 
     component.onCancel();
 
     expect(cancelSpy).toHaveBeenCalled();
+  });
+
+  it('should map project input into form values', () => {
+    projectSignal.set({
+      userId: 1,
+      id: 1,
+      name: 'Existing Project',
+      description: 'a'.repeat(30),
+    });
+
+    fixture.detectChanges();
+
+    component.ngOnInit?.();
+
+    expect(component.form.get('name')?.value).toBe('Existing Project');
+    expect(component.form.get('description')?.value).toBe('a'.repeat(30));
   });
 });

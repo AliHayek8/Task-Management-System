@@ -38,7 +38,8 @@ export class ProjectFormComponent {
   private submitted = false;
 
   onSave() {
-    if (this.submitted) return;
+    if (this.submitted || this.form.invalid) return;
+
     this.submitted = true;
 
     const updatedProject: Project = {
