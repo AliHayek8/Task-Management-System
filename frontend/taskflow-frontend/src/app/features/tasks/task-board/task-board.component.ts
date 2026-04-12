@@ -1,27 +1,12 @@
-import {
-  Component,
-  OnInit,
-  signal,
-  computed,
-  PLATFORM_ID,
-  ChangeDetectorRef,
-  inject,
-} from '@angular/core';
-
+import {Component, OnInit, signal, computed, PLATFORM_ID, ChangeDetectorRef, inject,} from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ButtonsModule } from '@progress/kendo-angular-buttons';
-
 import { TaskService, Task } from '../../../core/services/task/task.service';
 import { ProjectService } from '../../../core/services/project/project.service';
 import { TaskFormComponent } from '../task-form/task-form.component';
-import {
-  getPriorityColor,
-  getSessionUser,
-  GLOBAL_ERROR_DISMISS_MS,
-  TASK_STATUSES,
-} from './task-board.utils';
+import {getPriorityColor, getSessionUser, GLOBAL_ERROR_DISMISS_MS, TASK_STATUSES,} from './task-board.utils';
 
 type PriorityFilter = 'ALL' | 'LOW' | 'MEDIUM' | 'HIGH';
 
