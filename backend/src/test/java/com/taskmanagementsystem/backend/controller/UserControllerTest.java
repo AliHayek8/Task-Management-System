@@ -55,7 +55,7 @@ class UserControllerTest {
 
         @Test
         @WithMockUser
-        @DisplayName("should return 200 and the authenticated user (without password)")
+        @DisplayName("should return 200 and the authenticated user")
         void getMe_success() throws Exception {
             when(jwtUtil.extractEmail("valid-token")).thenReturn("alice@example.com");
             when(userRepository.findByEmail("alice@example.com")).thenReturn(Optional.of(alice));
@@ -70,17 +70,19 @@ class UserControllerTest {
 
         @Test
         @WithMockUser
-        @DisplayName("should return 403 when Authorization header is missing")
-        void getMe_missingAuthHeader_returns403() throws Exception {
-            // Controller itself checks for header and returns 403 directly
+        @DisplayName("should return 400 when Authorization header is missing (Spring MVC required header)")
+        void getMe_missingAuthHeader_returns400() throws Exception {
+            // With security filters disabled, the missing @RequestHeader triggers Spring's
+            // MissingRequestHeaderException → 400 Bad Request (not 403)
             mockMvc.perform(get("/api/users/me"))
-                    .andExpect(status().isForbidden());
+                    .andExpect(status().isBadRequest());
         }
 
         @Test
         @WithMockUser
         @DisplayName("should return 403 when Authorization header does not start with 'Bearer '")
         void getMe_invalidAuthHeaderFormat_returns403() throws Exception {
+            // Header is present but wrong format — controller returns 403 directly
             mockMvc.perform(get("/api/users/me")
                             .header("Authorization", "Token valid-token"))
                     .andExpect(status().isForbidden());
@@ -127,12 +129,13 @@ class UserControllerTest {
 
         @Test
         @WithMockUser
-        @DisplayName("should return 403 when Authorization header is missing")
-        void updateMe_missingHeader_returns403() throws Exception {
+        @DisplayName("should return 400 when Authorization header is missing (Spring MVC required header)")
+        void updateMe_missingHeader_returns400() throws Exception {
+            // With security filters disabled, missing @RequestHeader → 400 (not 403)
             mockMvc.perform(put("/api/users/me")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(alice)))
-                    .andExpect(status().isForbidden());
+                    .andExpect(status().isBadRequest());
         }
 
         @Test

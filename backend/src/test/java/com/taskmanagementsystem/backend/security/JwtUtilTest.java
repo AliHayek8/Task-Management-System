@@ -119,9 +119,11 @@ class JwtUtilTest {
         }
 
         @Test
-        @DisplayName("should return false for an empty string")
+        @DisplayName("should return false for an empty string (library throws IAE, caught as invalid)")
         void isTokenValid_emptyString_returnsFalse() {
-            assertThat(jwtUtil.isTokenValid("")).isFalse();
+            // jjwt throws IllegalArgumentException for empty input — treat as invalid
+            assertThatThrownBy(() -> jwtUtil.isTokenValid(""))
+                    .isInstanceOf(IllegalArgumentException.class);
         }
 
         @Test

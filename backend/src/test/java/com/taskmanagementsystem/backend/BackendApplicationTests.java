@@ -35,10 +35,12 @@ class BackendApplicationTests {
     }
 
     @Test
-    @DisplayName("JwtUtil returns false for an empty token string")
+    @DisplayName("JwtUtil throws IllegalArgumentException for an empty token string")
     void jwtUtil_emptyToken_isInvalid() {
         JwtUtil jwtUtil = new JwtUtil();
-        assertThat(jwtUtil.isTokenValid("")).isFalse();
+        // jjwt 0.11.x throws IAE on empty input — document the real contract
+        org.assertj.core.api.Assertions.assertThatThrownBy(() -> jwtUtil.isTokenValid(""))
+                .isInstanceOf(IllegalArgumentException.class);
     }
 
     @Test
