@@ -1,50 +1,55 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testing';
 import { AuthComponent } from './auth.component';
-import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
-import { RouterModule } from '@angular/router';
-import { HttpClientTestingModule } from '@angular/common/http/testing';
+import { ReactiveFormsModule } from '@angular/forms';
+import { RouterTestingModule } from '@angular/router/testing';
+import { PLATFORM_ID } from '@angular/core';
 import { AuthService } from '../../core/services/auth/auth.service';
 import { Router } from '@angular/router';
 import { of, throwError } from 'rxjs';
+import { NoopAnimationsModule } from '@angular/platform-browser/animations';
+import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { vi } from 'vitest';
 
 describe('AuthComponent', () => {
   let component: AuthComponent;
   let fixture: ComponentFixture<AuthComponent>;
   let authServiceMock: any;
-  let routerMock: any;
+  let router: Router;
+
+  const mockAuthResponse = { id: 1, token: 'jwt-token', name: 'Alice Smith', email: 'alice@example.com' };
 
   beforeEach(async () => {
     authServiceMock = {
       login: vi.fn(),
-      register: vi.fn()
-    };
-
-    routerMock = {
-      navigate: vi.fn()
+      register: vi.fn(),
     };
 
     await TestBed.configureTestingModule({
       imports: [
         AuthComponent,
-        CommonModule,
-        FormsModule,
-        RouterModule,
-        HttpClientTestingModule
+        ReactiveFormsModule,
+        RouterTestingModule.withRoutes([]),
+        NoopAnimationsModule,
+        HttpClientTestingModule,
       ],
       providers: [
         { provide: AuthService, useValue: authServiceMock },
-        { provide: Router, useValue: routerMock }
-      ]
+        { provide: PLATFORM_ID, useValue: 'browser' },
+      ],
     }).compileComponents();
 
-    fixture = TestBed.createComponent(AuthComponent);
+    router    = TestBed.inject(Router);
+    fixture   = TestBed.createComponent(AuthComponent);
     component = fixture.componentInstance;
-    await fixture.whenStable();
+    fixture.detectChanges();
+    sessionStorage.clear();
   });
 
-  it('should create', () => {
+  afterEach(() => sessionStorage.clear());
+
+  // ── Creation ──────────────────────────────────────────────────────────────
+
+  it('should create the component', () => {
     expect(component).toBeTruthy();
   });
 
@@ -52,75 +57,165 @@ describe('AuthComponent', () => {
     expect(component.isLoginMode).toBe(true);
   });
 
-  it('should toggle between login and register mode', () => {
-    expect(component.isLoginMode).toBe(true);
-    component.toggleMode();
-    expect(component.isLoginMode).toBe(false);
-    component.toggleMode();
-    expect(component.isLoginMode).toBe(true);
+  it('should initialise loginForm with empty email and password', () => {
+    expect(component.loginForm.value).toEqual({ email: '', password: '' });
   });
 
-  it('should clear error message when toggling mode', () => {
-    component.errorMessage = 'Some error';
-    component.toggleMode();
+  it('should initialise registerForm with empty name, email, and password', () => {
+    expect(component.registerForm.value).toEqual({ name: '', email: '', password: '' });
+  });
+
+  it('should have no error message on start', () => {
     expect(component.errorMessage).toBe('');
   });
 
-  it('should navigate to dashboard on successful login', () => {
-    const mockResponse = {
-      token: 'fake-token',
-      name: 'Ali',
-      email: 'ali@example.com'
-    };
+  // ── toggleMode() ──────────────────────────────────────────────────────────
 
-    authServiceMock.login.mockReturnValue(of(mockResponse));
+  describe('toggleMode()', () => {
+    it('should switch from login to register mode', () => {
+      component.toggleMode();
+      expect(component.isLoginMode).toBe(false);
+    });
 
-    component.loginData = { email: 'ali@example.com', password: '123456' };
-    component.onLogin();
+    it('should switch back to login mode on second toggle', () => {
+      component.toggleMode();
+      component.toggleMode();
+      expect(component.isLoginMode).toBe(true);
+    });
 
-    expect(localStorage.getItem('token')).toBe('fake-token');
-    expect(routerMock.navigate).toHaveBeenCalledWith(['/dashboard']);
+    it('should clear error message when toggling', () => {
+      component.errorMessage = 'Some error';
+      component.toggleMode();
+      expect(component.errorMessage).toBe('');
+    });
+
+    it('should reset loginForm when toggling', () => {
+      component.loginForm.setValue({ email: 'x@x.com', password: '123' });
+      component.toggleMode();
+      expect(component.loginForm.get('email')?.value).toBeFalsy();
+    });
   });
 
-  it('should show error message on failed login', () => {
-    authServiceMock.login.mockReturnValue(throwError(() => new Error('Unauthorized')));
+  // ── Form validation ───────────────────────────────────────────────────────
 
-    component.loginData = { email: 'wrong@example.com', password: 'wrongpass' };
-    component.onLogin();
+  describe('loginForm validation', () => {
+    it('should be invalid when empty', () => {
+      expect(component.loginForm.invalid).toBe(true);
+    });
 
-    expect(component.errorMessage).toBe('Invalid email or password');
+    it('should be invalid with an incorrect email format', () => {
+      component.loginForm.setValue({ email: 'not-an-email', password: '123456' });
+      expect(component.loginForm.invalid).toBe(true);
+    });
+
+    it('should be valid with correct email and any password', () => {
+      component.loginForm.setValue({ email: 'valid@example.com', password: 'anypassword' });
+      expect(component.loginForm.valid).toBe(true);
+    });
   });
 
-  it('should navigate to dashboard on successful register', () => {
-    const mockResponse = {
-      token: 'fake-token',
-      name: 'Ali',
-      email: 'ali@example.com'
-    };
+  describe('registerForm validation', () => {
+    it('should be invalid when empty', () => {
+      expect(component.registerForm.invalid).toBe(true);
+    });
 
-    authServiceMock.register.mockReturnValue(of(mockResponse));
+    it('should be invalid with a password shorter than 6 characters', () => {
+      component.registerForm.setValue({ name: 'Bob', email: 'b@b.com', password: '123' });
+      expect(component.registerForm.invalid).toBe(true);
+    });
 
-    component.registerData = {
-      name: 'Ali',
-      email: 'ali@example.com',
-      password: '123456'
-    };
-    component.onRegister();
-
-    expect(localStorage.getItem('token')).toBe('fake-token');
-    expect(routerMock.navigate).toHaveBeenCalledWith(['/dashboard']);
+    it('should be valid with all required fields correctly filled', () => {
+      component.registerForm.setValue({ name: 'Bob', email: 'b@b.com', password: 'securepass' });
+      expect(component.registerForm.valid).toBe(true);
+    });
   });
 
-  it('should show error message on failed register', () => {
-    authServiceMock.register.mockReturnValue(throwError(() => new Error('Email exists')));
+  // ── onLogin() ─────────────────────────────────────────────────────────────
 
-    component.registerData = {
-      name: 'Ali',
-      email: 'existing@example.com',
-      password: '123456'
-    };
-    component.onRegister();
+  describe('onLogin()', () => {
+    it('should not call authService.login when form is invalid', () => {
+      component.onLogin();
+      expect(authServiceMock.login).not.toHaveBeenCalled();
+    });
 
-    expect(component.errorMessage).toBe('Registration failed. Please try again.');
+    it('should call authService.login with form values on valid form', () => {
+      authServiceMock.login.mockReturnValue(of(mockAuthResponse));
+      component.loginForm.setValue({ email: 'alice@example.com', password: 'secret123' });
+      component.onLogin();
+      expect(authServiceMock.login).toHaveBeenCalledWith({ email: 'alice@example.com', password: 'secret123' });
+    });
+
+    it('should store token in sessionStorage on successful login', fakeAsync(() => {
+      authServiceMock.login.mockReturnValue(of(mockAuthResponse));
+      component.loginForm.setValue({ email: 'alice@example.com', password: 'secret123' });
+      component.onLogin();
+      tick();
+      expect(sessionStorage.getItem('token')).toBe('jwt-token');
+    }));
+
+    it('should navigate to /dashboard on successful login', fakeAsync(() => {
+      authServiceMock.login.mockReturnValue(of(mockAuthResponse));
+      const navSpy = vi.spyOn(router, 'navigate');
+      component.loginForm.setValue({ email: 'alice@example.com', password: 'secret123' });
+      component.onLogin();
+      tick();
+      expect(navSpy).toHaveBeenCalledWith(['/dashboard']);
+    }));
+
+    it('should set errorMessage to "Invalid email or password" on login failure', () => {
+      authServiceMock.login.mockReturnValue(throwError(() => ({ status: 401 })));
+      component.loginForm.setValue({ email: 'wrong@x.com', password: 'badpass' });
+      component.onLogin();
+      expect(component.errorMessage).toBe('Invalid email or password');
+    });
+  });
+
+  // ── onRegister() ──────────────────────────────────────────────────────────
+
+  describe('onRegister()', () => {
+    it('should not call authService.register when form is invalid', () => {
+      component.onRegister();
+      expect(authServiceMock.register).not.toHaveBeenCalled();
+    });
+
+    it('should call authService.register with form values on valid form', () => {
+      authServiceMock.register.mockReturnValue(of(mockAuthResponse));
+      component.registerForm.setValue({ name: 'Alice', email: 'alice@example.com', password: 'secret123' });
+      component.onRegister();
+      expect(authServiceMock.register).toHaveBeenCalledWith({ name: 'Alice', email: 'alice@example.com', password: 'secret123' });
+    });
+
+    it('should store token in sessionStorage on successful registration', fakeAsync(() => {
+      authServiceMock.register.mockReturnValue(of(mockAuthResponse));
+      component.registerForm.setValue({ name: 'Alice', email: 'alice@example.com', password: 'secret123' });
+      component.onRegister();
+      tick();
+      expect(sessionStorage.getItem('token')).toBe('jwt-token');
+    }));
+
+    it('should navigate to /dashboard on successful registration', fakeAsync(() => {
+      authServiceMock.register.mockReturnValue(of(mockAuthResponse));
+      const navSpy = vi.spyOn(router, 'navigate');
+      component.registerForm.setValue({ name: 'Alice', email: 'alice@example.com', password: 'secret123' });
+      component.onRegister();
+      tick();
+      expect(navSpy).toHaveBeenCalledWith(['/dashboard']);
+    }));
+
+    it('should show server error message on registration failure with message', () => {
+      authServiceMock.register.mockReturnValue(
+        throwError(() => ({ status: 400, error: { message: 'Email already exists' } }))
+      );
+      component.registerForm.setValue({ name: 'Alice', email: 'used@example.com', password: 'secret123' });
+      component.onRegister();
+      expect(component.errorMessage).toBe('Email already exists');
+    });
+
+    it('should show fallback error message on registration failure without server message', () => {
+      authServiceMock.register.mockReturnValue(throwError(() => ({ status: 500, error: {} })));
+      component.registerForm.setValue({ name: 'Alice', email: 'alice@example.com', password: 'secret123' });
+      component.onRegister();
+      expect(component.errorMessage).toBe('Registration failed. Please try again.');
+    });
   });
 });
