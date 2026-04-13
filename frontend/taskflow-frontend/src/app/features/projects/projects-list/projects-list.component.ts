@@ -1,4 +1,4 @@
-import { Component, Inject, OnInit, PLATFORM_ID, signal, computed } from '@angular/core';
+import { Component, OnInit, PLATFORM_ID, signal, computed, inject } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
@@ -17,6 +17,10 @@ type StatusFilter = 'ALL' | 'HAS_TASKS' | 'COMPLETED';
   imports: [FormsModule, ProjectFormComponent, RouterModule, CommonModule],
 })
 export class ProjectsListComponent implements OnInit {
+
+  private readonly projectService = inject(ProjectService);
+  private readonly taskService = inject(TaskService);
+  private readonly platformId = inject(PLATFORM_ID);
 
   projects = signal<ProjectWithTasks[]>([]);
   showPopup = signal(false);
@@ -60,12 +64,6 @@ export class ProjectsListComponent implements OnInit {
   ];
 
   private isSaving = false;
-
-  constructor(
-    private projectService: ProjectService,
-    private taskService: TaskService,
-    @Inject(PLATFORM_ID) private platformId: Object
-  ) {}
 
   ngOnInit(): void {
     if (!isPlatformBrowser(this.platformId)) return;

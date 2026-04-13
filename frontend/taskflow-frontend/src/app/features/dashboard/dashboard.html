@@ -5,6 +5,8 @@
   <h1>Dashboard</h1>
   <p class="subtitle">Overview of all your projects and tasks</p>
 
+  <h2 class="section-title">Tasks</h2>
+
   <div class="stats">
     @for (stat of stats(); track stat) {
     <div class="card stat-card">
@@ -18,43 +20,62 @@
   </div>
 
   <h2 class="section-title">Projects</h2>
+
+  @if (loading()) {
+  <div class="loading">
+    <i class="fa-solid fa-spinner fa-spin"></i>
+    <p>Loading projects...</p>
+  </div>
+  }
+
+  @if (!loading()) {
+
   <div class="projects">
 
-    <a
-      class="dashboard-project-card total-projects-card"
-      [routerLink]="['/projects']">
+    <a class="dashboard-project-card total-projects-card"
+       [routerLink]="['/projects']">
+
       <div class="project-header">
         <i class="fa-solid fa-folder-open fa-lg" style="color: #4f46e5;"></i>
         <h3>Total Projects</h3>
       </div>
+
       <h2>{{ projects().length }}</h2>
     </a>
 
     @for (project of projects(); track project) {
-    <a
-      class="dashboard-project-card clickable-card"
-      [routerLink]="['/projects', project.id, 'tasks']">
+    <a class="dashboard-project-card clickable-card"
+       [routerLink]="['/projects', project.id, 'tasks']">
+
       <div class="project-header">
         <span class="dot"></span>
         <h3>{{ project.name }}</h3>
       </div>
+
       <p class="description">
         {{ project.description?.split(' ').slice(0,5).join(' ') }}
         @if (project.description?.split(' ').length > 5) {
         <span>...</span>
         }
       </p>
+
       <div class="progress-bar">
-        <div
-          class="dashboard-progress"
-          [style.width.%]="project.totalTasks ? (project.tasksCompleted / project.totalTasks) * 100 : 0">
+        <div class="dashboard-progress"
+             [style.width.%]="project.totalTasks ? (project.tasksCompleted / project.totalTasks) * 100 : 0">
         </div>
       </div>
+
       <div class="project-footer">
         <span>{{ project.totalTasks || 0 }} tasks</span>
-        <span>{{ project.totalTasks ? ((project.tasksCompleted / project.totalTasks) * 100 | number:'1.0-0') : 0 }}%</span>
+        <span>
+              {{ project.totalTasks ? ((project.tasksCompleted / project.totalTasks) * 100 | number:'1.0-0') : 0 }}%
+            </span>
       </div>
+
     </a>
     }
+
   </div>
+  }
+
 </div>
