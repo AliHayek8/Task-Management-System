@@ -41,7 +41,6 @@ class ProjectServiceTest {
         project.setUser(owner);
     }
 
-    // ─── createProject() ──────────────────────────────────────────────────────
 
     @Nested
     @DisplayName("createProject()")
@@ -96,7 +95,6 @@ class ProjectServiceTest {
         }
     }
 
-    // ─── getProjectsByUser() ──────────────────────────────────────────────────
 
     @Nested
     @DisplayName("getProjectsByUser()")
@@ -132,7 +130,6 @@ class ProjectServiceTest {
         }
     }
 
-    // ─── updateProject() ──────────────────────────────────────────────────────
 
     @Nested
     @DisplayName("updateProject()")
@@ -181,7 +178,6 @@ class ProjectServiceTest {
         }
     }
 
-    // ─── deleteProject() ──────────────────────────────────────────────────────
 
     @Nested
     @DisplayName("deleteProject()")

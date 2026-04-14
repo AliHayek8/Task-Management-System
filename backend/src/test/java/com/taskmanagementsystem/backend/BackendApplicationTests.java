@@ -6,10 +6,7 @@ import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-/**
- * Lightweight smoke tests that don't require a database or full Spring context.
- * Controller and Service integration is covered by the dedicated test classes.
- */
+
 @DisplayName("BackendApplication – smoke tests")
 class BackendApplicationTests {
 
@@ -38,7 +35,6 @@ class BackendApplicationTests {
     @DisplayName("JwtUtil throws IllegalArgumentException for an empty token string")
     void jwtUtil_emptyToken_isInvalid() {
         JwtUtil jwtUtil = new JwtUtil();
-        // jjwt 0.11.x throws IAE on empty input — document the real contract
         org.assertj.core.api.Assertions.assertThatThrownBy(() -> jwtUtil.isTokenValid(""))
                 .isInstanceOf(IllegalArgumentException.class);
     }

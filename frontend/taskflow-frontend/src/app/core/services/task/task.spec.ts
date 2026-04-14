@@ -29,7 +29,6 @@ describe('TaskService', () => {
   ];
 
   beforeEach(() => {
-    // Stub sessionStorage so the service can read a token
     vi.spyOn(Storage.prototype, 'getItem').mockReturnValue('fake-jwt-token');
 
     TestBed.configureTestingModule({
@@ -50,7 +49,6 @@ describe('TaskService', () => {
     expect(service).toBeTruthy();
   });
 
-  // ── getTasksByProject() ────────────────────────────────────────────────────
 
   describe('getTasksByProject()', () => {
     it('should GET tasks for a given project id', () => {
@@ -85,7 +83,6 @@ describe('TaskService', () => {
     });
   });
 
-  // ── createTask() ──────────────────────────────────────────────────────────
 
   describe('createTask()', () => {
     const newTask: Task = { title: 'New Feature', description: 'Implement dark mode', status: 'TODO', priority: 'MEDIUM', projectId: 42 };
@@ -119,7 +116,6 @@ describe('TaskService', () => {
     });
   });
 
-  // ── updateTask() ──────────────────────────────────────────────────────────
 
   describe('updateTask()', () => {
     it('should PUT to /tasks/:id and return the updated task', () => {
@@ -143,7 +139,6 @@ describe('TaskService', () => {
     });
   });
 
-  // ── deleteTask() ──────────────────────────────────────────────────────────
 
   describe('deleteTask()', () => {
     it('should DELETE /tasks/:id', () => {
@@ -170,7 +165,6 @@ describe('TaskService', () => {
     });
   });
 
-  // ── updateTaskStatus() ────────────────────────────────────────────────────
 
   describe('updateTaskStatus()', () => {
     it('should PATCH /tasks/:id/status with IN_PROGRESS', () => {

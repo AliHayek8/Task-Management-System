@@ -47,7 +47,6 @@ class UserControllerTest {
                 .build();
     }
 
-    // ── GET /api/users/me ─────────────────────────────────────────────────
 
     @Nested
     @DisplayName("GET /api/users/me")
@@ -101,7 +100,6 @@ class UserControllerTest {
         }
     }
 
-    // ── PUT /api/users/me ─────────────────────────────────────────────────
 
     @Nested
     @DisplayName("PUT /api/users/me")

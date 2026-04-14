@@ -38,7 +38,6 @@ class AuthControllerTest {
     private static final AuthResponse MOCK_RESPONSE =
             new AuthResponse(1L, "jwt-token", "Alice Smith", "alice@example.com");
 
-    // ─── POST /api/auth/register ───────────────────────────────────────────
 
     @Nested
     @DisplayName("POST /api/auth/register")
@@ -124,7 +123,6 @@ class AuthControllerTest {
         }
     }
 
-    // ─── POST /api/auth/login ─────────────────────────────────────────────
 
     @Nested
     @DisplayName("POST /api/auth/login")

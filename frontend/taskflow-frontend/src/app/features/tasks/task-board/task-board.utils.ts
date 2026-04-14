@@ -22,7 +22,6 @@ export const PRIORITY_COLORS: Record<string, string> = {
   DEFAULT: '#6b7280',
 };
 
-// ------ Helper Functions ------
 
 export function getPriorityColor(priority: string): string {
   return PRIORITY_COLORS[priority] ?? PRIORITY_COLORS['DEFAULT'];

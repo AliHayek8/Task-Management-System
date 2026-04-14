@@ -55,7 +55,6 @@ class TaskServiceTest {
                 .build();
     }
 
-    // ── getTasksByProject() ───────────────────────────────────────────────
 
     @Nested
     @DisplayName("getTasksByProject()")
@@ -119,7 +118,6 @@ class TaskServiceTest {
         }
     }
 
-    // ── createTask() ──────────────────────────────────────────────────────
 
     @Nested
     @DisplayName("createTask()")
@@ -221,7 +219,6 @@ class TaskServiceTest {
         }
     }
 
-    // ── updateTask() ──────────────────────────────────────────────────────
 
     @Nested
     @DisplayName("updateTask()")
@@ -279,7 +276,6 @@ class TaskServiceTest {
         @Test
         @DisplayName("should throw RuntimeException when description update is too short")
         void updateTask_shortDescription_throws() {
-            // Description validation happens BEFORE taskRepository.findById — no stub needed
             TaskRequest req = buildUpdateRequest("Valid", "Short", null);
 
             assertThatThrownBy(() -> taskService.updateTask(1L, req))
@@ -300,7 +296,6 @@ class TaskServiceTest {
         }
     }
 
-    // ── deleteTask() ──────────────────────────────────────────────────────
 
     @Nested
     @DisplayName("deleteTask()")
@@ -328,7 +323,6 @@ class TaskServiceTest {
         }
     }
 
-    // ── updateTaskStatus() ────────────────────────────────────────────────
 
     @Nested
     @DisplayName("updateTaskStatus()")
@@ -376,7 +370,6 @@ class TaskServiceTest {
         }
     }
 
-    // ── getTasksByAssignee() ──────────────────────────────────────────────
 
     @Nested
     @DisplayName("getTasksByAssignee()")

@@ -18,7 +18,6 @@ class JwtUtilTest {
         jwtUtil = new JwtUtil();
     }
 
-    // ─── generateToken() ──────────────────────────────────────────────────────
 
     @Nested
     @DisplayName("generateToken()")
@@ -58,7 +57,6 @@ class JwtUtilTest {
         }
     }
 
-    // ─── extractEmail() ───────────────────────────────────────────────────────
 
     @Nested
     @DisplayName("extractEmail()")
@@ -99,7 +97,6 @@ class JwtUtilTest {
         }
     }
 
-    // ─── isTokenValid() ───────────────────────────────────────────────────────
 
     @Nested
     @DisplayName("isTokenValid()")
@@ -142,7 +139,6 @@ class JwtUtilTest {
         }
     }
 
-    // ─── round-trip ───────────────────────────────────────────────────────────
 
     @Test
     @DisplayName("should complete a full generate → validate → extract cycle correctly")

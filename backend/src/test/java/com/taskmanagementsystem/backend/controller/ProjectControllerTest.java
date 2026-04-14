@@ -52,7 +52,6 @@ class ProjectControllerTest {
         project.setUser(owner);
     }
 
-    // ── POST /api/projects ────────────────────────────────────────────────
 
     @Nested
     @DisplayName("POST /api/projects")
@@ -97,7 +96,6 @@ class ProjectControllerTest {
         }
     }
 
-    // ── GET /api/projects/user/{userId} ───────────────────────────────────
 
     @Nested
     @DisplayName("GET /api/projects/user/{userId}")
@@ -127,7 +125,6 @@ class ProjectControllerTest {
         }
     }
 
-    // ── PUT /api/projects/{id} ────────────────────────────────────────────
 
     @Nested
     @DisplayName("PUT /api/projects/{id}")
@@ -173,7 +170,6 @@ class ProjectControllerTest {
         }
     }
 
-    // ── DELETE /api/projects/{id} ─────────────────────────────────────────
 
     @Nested
     @DisplayName("DELETE /api/projects/{id}")

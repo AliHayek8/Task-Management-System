@@ -46,7 +46,6 @@ describe('TaskFormComponent', () => {
     expect(component.taskFormGroup.value.priority).toBe('MEDIUM');
   });
 
-  // ── Form validation ───────────────────────────────────────────────────────
 
   describe('form validation', () => {
     it('should be invalid when title is empty', () => {
@@ -102,7 +101,6 @@ describe('TaskFormComponent', () => {
     });
   });
 
-  // ── Assignee required validator for non-TODO statuses ────────────────────
 
   describe('assigneeEmail required for non-TODO statuses', () => {
     it('should require assigneeEmail when status is IN_PROGRESS', () => {
@@ -121,7 +119,6 @@ describe('TaskFormComponent', () => {
     });
   });
 
-  // ── saveTask() – create mode ──────────────────────────────────────────────
 
   describe('saveTask() – create mode', () => {
     const validFormData = { title: 'Fix Bug', description: '', status: 'TODO' as const, priority: 'HIGH' as const, assigneeEmail: '', deadline: '' };
@@ -165,7 +162,6 @@ describe('TaskFormComponent', () => {
     });
   });
 
-  // ── saveTask() – edit mode ────────────────────────────────────────────────
 
   describe('saveTask() – edit mode', () => {
     const validFormData = { title: 'Updated Task', description: '', status: 'TODO' as const, priority: 'LOW' as const, assigneeEmail: '', deadline: '' };
@@ -194,7 +190,6 @@ describe('TaskFormComponent', () => {
     });
   });
 
-  // ── closeDialog() ─────────────────────────────────────────────────────────
 
   it('should emit dialogClosed event when closeDialog() is called', () => {
     const emitSpy = vi.spyOn(component.dialogClosed, 'emit');
@@ -202,7 +197,6 @@ describe('TaskFormComponent', () => {
     expect(emitSpy).toHaveBeenCalled();
   });
 
-  // ── taskFields getter ─────────────────────────────────────────────────────
 
   describe('taskFields getter', () => {
     it('should expose a title field',         () => expect(component.taskFields.some(f => f.name === 'title')).toBe(true));
