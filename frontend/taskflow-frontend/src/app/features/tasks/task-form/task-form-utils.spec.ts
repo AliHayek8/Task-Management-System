@@ -11,7 +11,6 @@ function buildTask(overrides: Partial<Task> = {}): Task {
 function tomorrow(): string { const d = new Date(); d.setDate(d.getDate() + 1); return d.toISOString().split('T')[0]; }
 function yesterday(): string { const d = new Date(); d.setDate(d.getDate() - 1); return d.toISOString().split('T')[0]; }
 
-// ── validateTitle() ───────────────────────────────────────────────────────────
 
 describe('validateTitle()', () => {
   it('should return required error for empty string',           () => expect(validateTitle('')).toBe(VALIDATION_MESSAGES.title.required));
@@ -22,7 +21,6 @@ describe('validateTitle()', () => {
   it('should trim before length check',                         () => expect(validateTitle('  A  ')).toBe(VALIDATION_MESSAGES.title.minLength));
 });
 
-// ── validateDescription() ─────────────────────────────────────────────────────
 
 describe('validateDescription()', () => {
   it('should return empty for empty description (optional)',    () => expect(validateDescription('')).toBe(''));
@@ -33,7 +31,6 @@ describe('validateDescription()', () => {
   it('should treat whitespace-only as empty (no error)',        () => expect(validateDescription('   ')).toBe(''));
 });
 
-// ── validateAssigneeEmail() ───────────────────────────────────────────────────
 
 describe('validateAssigneeEmail()', () => {
   it('should return empty for empty email (optional)',          () => expect(validateAssigneeEmail('')).toBe(''));
@@ -44,7 +41,6 @@ describe('validateAssigneeEmail()', () => {
   it('should return empty for subdomain email',                 () => expect(validateAssigneeEmail('user@mail.co.uk')).toBe(''));
 });
 
-// ── validateDeadline() ────────────────────────────────────────────────────────
 
 describe('validateDeadline()', () => {
   it('should return empty for undefined deadline',              () => expect(validateDeadline(undefined)).toBe(''));
@@ -54,7 +50,6 @@ describe('validateDeadline()', () => {
   it('should return pastDate error for old date',               () => expect(validateDeadline('2000-01-01')).toBe(VALIDATION_MESSAGES.deadline.pastDate));
 });
 
-// ── validateTaskForm() ────────────────────────────────────────────────────────
 
 describe('validateTaskForm()', () => {
   it('should return no errors for a valid TODO task without assignee', () => {
@@ -92,7 +87,6 @@ describe('validateTaskForm()', () => {
   });
 });
 
-// ── isFormErrorFree() ─────────────────────────────────────────────────────────
 
 describe('isFormErrorFree()', () => {
   it('should return true when all errors are empty',        () => expect(isFormErrorFree(getEmptyFieldErrors(), '')).toBe(true));
@@ -103,7 +97,6 @@ describe('isFormErrorFree()', () => {
   it('should return false when there is a deadline error',  () => expect(isFormErrorFree({ ...getEmptyFieldErrors(), deadline: 'Past date' }, '')).toBe(false));
 });
 
-// ── getEmptyFieldErrors() ─────────────────────────────────────────────────────
 
 describe('getEmptyFieldErrors()', () => {
   it('should return an object with all empty string fields', () => {

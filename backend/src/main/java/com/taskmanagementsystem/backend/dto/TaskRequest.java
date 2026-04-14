@@ -15,8 +15,6 @@ public class TaskRequest {
     @Size(min = 3, message = "Title must be at least 3 characters")
     private String title;
 
-    // الوصف اختياري - فقط إذا موجود لازم 30 حرف
-    // نحذف @Size من هون ونتحقق منه في الـ Service
     private String description;
 
     private TaskStatus status;

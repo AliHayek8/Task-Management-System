@@ -57,7 +57,6 @@ class TaskControllerTest {
         return req;
     }
 
-    // ── GET /api/projects/{projectId}/tasks ───────────────────────────────
 
     @Nested
     @DisplayName("GET /api/projects/{projectId}/tasks")
@@ -103,7 +102,6 @@ class TaskControllerTest {
         }
     }
 
-    // ── POST /api/tasks ───────────────────────────────────────────────────
 
     @Nested
     @DisplayName("POST /api/tasks")
@@ -183,7 +181,6 @@ class TaskControllerTest {
         }
     }
 
-    // ── PUT /api/tasks/{id} ───────────────────────────────────────────────
 
     @Nested
     @DisplayName("PUT /api/tasks/{id}")
@@ -219,7 +216,6 @@ class TaskControllerTest {
         }
     }
 
-    // ── DELETE /api/tasks/{id} ────────────────────────────────────────────
 
     @Nested
     @DisplayName("DELETE /api/tasks/{id}")
@@ -246,7 +242,6 @@ class TaskControllerTest {
         }
     }
 
-    // ── PATCH /api/tasks/{id}/status ──────────────────────────────────────
 
     @Nested
     @DisplayName("PATCH /api/tasks/{id}/status")
@@ -276,7 +271,6 @@ class TaskControllerTest {
         }
     }
 
-    // ── GET /api/tasks/assignee ───────────────────────────────────────────
 
     @Nested
     @DisplayName("GET /api/tasks/assignee")

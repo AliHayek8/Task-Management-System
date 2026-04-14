@@ -22,13 +22,11 @@ describe('AuthService', () => {
 
   afterEach(() => httpMock.verify());
 
-  // ─── Creation ─────────────────────────────────────────────────────────────
 
   it('should be created', () => {
     expect(service).toBeTruthy();
   });
 
-  // ─── register() ───────────────────────────────────────────────────────────
 
   describe('register()', () => {
     const registerPayload = { name: 'Alice Smith', email: 'alice@example.com', password: 'secret123' };
@@ -78,7 +76,6 @@ describe('AuthService', () => {
     });
   });
 
-  // ─── login() ──────────────────────────────────────────────────────────────
 
   describe('login()', () => {
     const loginPayload = { email: 'alice@example.com', password: 'secret123' };

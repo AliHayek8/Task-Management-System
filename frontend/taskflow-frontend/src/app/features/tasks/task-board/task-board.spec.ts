@@ -53,7 +53,6 @@ describe('TaskBoard', () => {
     };
     vi.stubGlobal('sessionStorage', storageMock);
 
-    //  mock alert
     vi.stubGlobal('alert', vi.fn());
 
     await TestBed.configureTestingModule({
@@ -73,9 +72,7 @@ describe('TaskBoard', () => {
     fixture = TestBed.createComponent(TaskBoard);
     component = fixture.componentInstance;
 
-    // Ensure the component has the necessary constants before detection
-    // These should already be there from the imports, but we're making sure
-    // because the error log showed they were undefined in the template.
+
     if (!component.TASK_STATUSES) {
         (component as any).TASK_STATUSES = {
             TODO: 'TODO',
